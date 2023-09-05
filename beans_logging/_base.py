@@ -9,13 +9,13 @@ from typing import Union
 ## Third-party libraries
 import yaml
 from pydantic import validate_call
-from loguru import logger
 from loguru._logger import Logger
+from loguru import logger
 
 ## Internal modules
-from ._schema import LoggerConfigPM
 from ._handler import InterceptHandler
 from .rotation import RotationChecker
+from .schema import LoggerConfigPM
 from .sink import std_sink
 from .format import json_format
 from .filter import (

@@ -3,11 +3,7 @@
 import os
 from typing import Union
 
-from loguru import logger
-from loguru._logger import Logger
-
-from ._base import LoggerLoader
-from .__version__ import __version__
+from . import *
 
 logger_loader: Union[LoggerLoader, None] = None
 _DISABLE_DEFAULT_LOGGER = (
