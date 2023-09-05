@@ -169,7 +169,7 @@ except Exception as err:
     logger.exception("Show me, what value is wrong:")
 ```
 
-Run the [`examples/simple`](https://github.com/bybatkhuu/mod.python-logging/tree/main/examples/simple):
+Run the [**`examples/simple`**](https://github.com/bybatkhuu/mod.python-logging/tree/main/examples/simple):
 
 ```sh
 cd ./examples/simple
@@ -305,7 +305,7 @@ def root():
     return {"Hello": "World"}
 ```
 
-Run the [`examples/advanced`](https://github.com/bybatkhuu/mod.python-logging/tree/main/examples/advanced):
+Run the [**`examples/advanced`**](https://github.com/bybatkhuu/mod.python-logging/tree/main/examples/advanced):
 
 ```sh
 cd ./examples/advanced
