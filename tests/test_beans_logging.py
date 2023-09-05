@@ -1,32 +1,60 @@
 # -*- coding: utf-8 -*-
 
-import unittest
+import pytest
 
-from beans_logging.auto import logger
+from beans_logging._schema import LoggerConfigPM
+from beans_logging.auto import logger, Logger, LoggerLoader
 
 
-class TestBeansLogging(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        logger.info("Starting 'beans_logging' unittest...\n")
+@pytest.fixture
+def logger_loader():
+    _logger_loader = LoggerLoader()
 
-    @classmethod
-    def tearDownClass(cls):
-        logger.success("Successfully tested 'beans_logging'.")
+    yield _logger_loader
 
-    def test_init(self):
-        logger.info("Testing initialization of 'beans_logging' module...")
-        self.assertIsNotNone(logger)
-        logger.success("Done.\n")
+    del _logger_loader
 
-    def test_functions(self):
-        logger.info("Testing basic functions of 'beans_logging'...")
-        logger.trace("Tracing...")
-        logger.debug("Debugging...")
-        logger.info("Logging info.")
-        logger.success("Success.")
-        logger.warning("Warning something.")
-        logger.error("Error occured.")
-        logger.critical("CRITICAL ERROR.")
-        self.assertTrue(True)
-        logger.success("Done.\n")
+
+def test_init(logger_loader):
+    logger.info("Testing initialization of 'LoggerLoader'...")
+
+    assert isinstance(logger_loader, LoggerLoader)
+    assert logger_loader.handlers_map == {"default": 0}
+    assert logger_loader.configs_dir == LoggerLoader._CONFIGS_DIR
+    assert logger_loader.config_filename == LoggerLoader._CONFIG_FILENAME
+    assert isinstance(logger_loader.config, LoggerConfigPM)
+
+    logger.success("Done: Initialization of 'LoggerLoader'.")
+
+
+def test_load(logger_loader):
+    logger.info("Testing 'load' method of 'LoggerLoader'...")
+
+    logger_loader.update_config(config={"level": "TRACE"})
+    _logger: Logger = logger_loader.load()
+
+    assert isinstance(_logger, Logger)
+    assert _logger == logger
+    _logger.trace("Tracing...")
+    _logger.debug("Debugging...")
+    _logger.info("Logging info.")
+    _logger.success("Success.")
+    _logger.warning("Warning something.")
+    _logger.error("Error occured.")
+    _logger.critical("CRITICAL ERROR.")
+
+    logger.success("Done: 'load' method.")
+
+
+def test_methods():
+    logger.info("Testing 'logger' methods...")
+
+    logger.trace("Tracing...")
+    logger.debug("Debugging...")
+    logger.info("Logging info.")
+    logger.success("Success.")
+    logger.warning("Warning something.")
+    logger.error("Error occured.")
+    logger.critical("CRITICAL ERROR.")
+
+    logger.success("Done: 'logger' methods.")
