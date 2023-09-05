@@ -1,0 +1,65 @@
+name: 2. Build and Publish
+
+on:
+  workflow_run:
+    workflows: ["1. Bump Version"]
+    types:
+      - completed
+  push:
+    tags:
+      - "v*.*.*"
+  # pull_request:
+  #   branches:
+  #     - main
+
+jobs:
+  test:
+    name: 2.1. Test
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install -r ./requirements.txt
+          python -m pip install pytest==7.3.1 pytest-cov==4.1.0
+      - name: Test with pytest
+        run: python -m pytest -sv
+
+  build_publish:
+    needs: test
+    name: 2.2. Build and Publish
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          python -m pip install -U pip
+          python -m pip install build==0.10.0 twine==4.0.2
+      - name: Build and publish package
+        # run: |
+        #   echo -e "[pypi]\nusername = __token__\npassword = ${{ secrets.PYPI_API_TOKEN }}" > ~/.pypirc
+        #   ./scripts/build.sh -c -t -u -p
+        #   rm -rfv ~/.pypirc
+        run: |
+          echo -e "[testpypi]\nusername = __token__\npassword = ${{ secrets.TEST_PYPI_API_TOKEN }}" > ~/.pypirc
+          ./scripts/build.sh -c -t -u
+          rm -rfv ~/.pypirc
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create v$(./scripts/get-version.sh) ./dist/* --generate-notes

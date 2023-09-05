@@ -1,0 +1,8 @@
+logger:
+  app_name: "my-app"
+  level: "TRACE"
+  file:
+    log_handlers:
+      enabled: true
+    json_handlers:
+      enabled: true
