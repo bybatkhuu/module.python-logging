@@ -2,8 +2,7 @@
 
 import pytest
 
-from beans_logging._schema import LoggerConfigPM
-from beans_logging.auto import logger, Logger, LoggerLoader
+from beans_logging import LoggerConfigPM, Logger, logger, LoggerLoader
 
 
 @pytest.fixture
