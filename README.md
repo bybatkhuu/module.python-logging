@@ -294,7 +294,6 @@ app = FastAPI(lifespan=lifespan, version=__version__)
 app.add_middleware(
     HttpAccessLogMiddleware,
     has_proxy_headers=True,
-    has_cf_headers=True,
     msg_format=logger_loader.config.extra.http_std_msg_format,
     debug_format=logger_loader.config.extra.http_std_debug_format,
 )
