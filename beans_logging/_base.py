@@ -2,6 +2,7 @@
 
 ## Standard libraries
 import os
+import copy
 import json
 import logging
 from typing import Union
@@ -13,6 +14,7 @@ from loguru._logger import Logger
 from loguru import logger
 
 ## Internal modules
+from ._utils import create_dir, deep_merge
 from ._handler import InterceptHandler
 from .rotation import RotationChecker
 from .schema import LoggerConfigPM
@@ -26,25 +28,23 @@ from .filter import (
     use_file_json_filter,
     use_file_json_err_filter,
 )
-from ._utils import create_dir
 
 
 class LoggerLoader:
     """LoggerLoader class for setting up loguru logger.
 
     Attributes:
-        _CONFIGS_DIR     (str           ): Default configs directory. Defaults to '${PWD}/configs'.
-        _CONFIG_FILENAME (str           ): Default logger config filename. Defaults to 'logger.yml'.
+        _CONFIG_FILE_PATH (str           ): Default logger config file path. Defaults to '${PWD}/configs/logger.yml'.
 
-        handlers_map     (dict          ): Registered logger handlers map as dictionary.
-        configs_dir      (str           ): Logger configs directory.
-        config_filename  (str           ): Logger config filename.
-        config           (LoggerConfigPM): Logger config as <class 'LoggerConfigPM'>.
+        handlers_map       (dict          ): Registered logger handlers map as dictionary. Defaults to None.
+        config             (LoggerConfigPM): Logger config as <class 'LoggerConfigPM'>. Defaults to None.
+        config_file_path   (str           ): Logger config file path. Defaults to `LoggerLoader._CONFIG_FILE_PATH`.
 
     Methods:
         load()                      : Load logger handlers based on logger config.
         remove_handler()            : Remove all handlers or specific handler by name or id from logger.
         update_config()             : Update logger config with new config.
+        _load_env_vars()            : Load 'BEANS_LOGGING_CONFIG_PATH' environment variable for logger config file path.
         _load_config_file()         : Load logger config from file.
         _check_env()                : Check environment variables for logger config.
         _add_stream_std_handler()   : Add std stream handler to logger.
@@ -56,31 +56,32 @@ class LoggerLoader:
         _load_intercept_handlers()  : Load intercept handlers to catch third-pary modules log or mute them.
     """
 
-    _CONFIGS_DIR = os.path.join(os.getcwd(), "configs")
-    _CONFIG_FILENAME = "logger.yml"
+    _CONFIG_FILE_PATH = os.path.join(os.getcwd(), "configs", "logger.yml")
 
+    @validate_call
     def __init__(
         self,
-        configs_dir: str = _CONFIGS_DIR,
-        config_filename: str = _CONFIG_FILENAME,
+        config: Union[LoggerConfigPM, dict, None] = None,
+        config_file_path: str = _CONFIG_FILE_PATH,
         load_config_file: bool = True,
-        config: Union[dict, LoggerConfigPM, None] = None,
         auto_load: bool = False,
     ):
         """LoggerLoader constructor method.
 
         Args:
-            configs_dir      (str,                               optional): Logger configs directory. Defaults to LoggerLoader._CONFIGS_DIR.
-            config_filename  (str,                               optional): Logger config filename. Defaults to LoggerLoader._CONFIG_FILENAME.
-            load_config_file (bool,                              optional): Indicates whether to load logger config file or not. Defaults to True.
-            config           (Union[dict, LoggerConfigPM, None], optional): New logger config to update loaded config. Defaults to None.
-            auto_load        (bool,                              optional): Indicates whether to load logger handlers or not. Defaults to False.
+            config           (Union[LoggerConfigPM,
+                                    dict,
+                                    None           ], optional): New logger config to update loaded config. Defaults to None.
+            config_file_path (str                   , optional): Logger config file path. Defaults to `LoggerLoader._CONFIG_FILE_PATH`.
+            load_config_file (bool                  , optional): Indicates whether to load logger config file or not. Defaults to True.
+            auto_load        (bool                  , optional): Indicates whether to load logger handlers or not. Defaults to False.
         """
 
-        self.handlers_map: dict = {"default": 0}
-        self.configs_dir = configs_dir
-        self.config_filename = config_filename
+        self.handlers_map = {"default": 0}
         self.config = LoggerConfigPM()
+        self.config_file_path = config_file_path
+
+        self._load_env_vars()
 
         if load_config_file:
             self._load_config_file()
@@ -155,11 +156,11 @@ class LoggerLoader:
         self.handlers_map.clear()
 
     @validate_call
-    def update_config(self, config: Union[dict, LoggerConfigPM]):
+    def update_config(self, config: Union[LoggerConfigPM, dict]):
         """Update logger config with new config.
 
         Args:
-            config (Union[dict, LoggerConfigPM], required): New logger config to update loaded config.
+            config (Union[LoggerConfigPM, dict], required): New logger config to update loaded config.
 
         Raises:
             Exception: Failed to load `config` argument into <class 'LoggerConfigPM'>.
@@ -168,8 +169,8 @@ class LoggerLoader:
         try:
             if isinstance(config, dict):
                 _config_dict = self.config.model_dump()
-                _config_dict.update(config)
-                self.config = LoggerConfigPM(**_config_dict)
+                _merged_dict = deep_merge(_config_dict, config)
+                self.config = LoggerConfigPM(**_merged_dict)
             elif isinstance(config, LoggerConfigPM):
                 self.config = config
         except Exception:
@@ -178,59 +179,92 @@ class LoggerLoader:
             )
             raise
 
+    def _load_env_vars(self):
+        """Load 'BEANS_LOGGING_CONFIG_PATH' environment variable for logger config file path."""
+
+        _env_config_file_path = os.getenv("BEANS_LOGGING_CONFIG_PATH")
+        if _env_config_file_path:
+            try:
+                self.config_file_path = _env_config_file_path
+            except Exception:
+                logger.warning(
+                    "Failed to load 'BEANS_LOGGING_CONFIG_PATH' environment variable!"
+                )
+
     def _load_config_file(self):
         """Load logger config from file."""
 
-        _config_file_format = "YAML"
-        if self.config_filename.lower().endswith((".yml", ".yaml")):
-            _config_file_format = "YAML"
-        if self.config_filename.lower().endswith(".json"):
-            _config_file_format = "JSON"
-        # elif self.config_filename.lower().endswith(".toml"):
-        #     _config_file_format = "TOML"
-
-        _config_path = os.path.abspath(
-            os.path.join(self.configs_dir, self.config_filename)
-        )
+        _file_format = ""
+        if self.config_file_path.lower().endswith((".yml", ".yaml")):
+            _file_format = "YAML"
+        if self.config_file_path.lower().endswith(".json"):
+            _file_format = "JSON"
+        # elif self.config_file_path.lower().endswith(".toml"):
+        #     _file_format = "TOML"
 
         ## Loading config from file, if it's exits:
-        if os.path.isfile(_config_path):
-            if _config_file_format == "YAML":
+        if os.path.isfile(self.config_file_path):
+            if _file_format == "YAML":
                 try:
-                    with open(_config_path, "r", encoding="utf-8") as _config_file:
-                        _new_config_dict = yaml.safe_load(_config_file)["logger"]
+                    with open(
+                        self.config_file_path, "r", encoding="utf-8"
+                    ) as _config_file:
+                        _new_config_dict = yaml.safe_load(_config_file) or {}
+                        if "logger" not in _new_config_dict:
+                            logger.warning(
+                                f"'{self.config_file_path}' YAML config file doesn't have 'logger' section!"
+                            )
+                            return
+
+                        _new_config_dict = _new_config_dict["logger"]
                         _config_dict = self.config.model_dump()
-                        _config_dict.update(_new_config_dict)
-                        self.config = LoggerConfigPM(**_config_dict)
+                        _merged_dict = deep_merge(_config_dict, _new_config_dict)
+                        self.config = LoggerConfigPM(**_merged_dict)
                 except Exception:
                     logger.critical(
-                        f"Failed to load '{_config_path}' yaml config file."
+                        f"Failed to load '{self.config_file_path}' yaml config file."
                     )
                     raise
-            elif _config_file_format == "JSON":
+            elif _file_format == "JSON":
                 try:
-                    with open(_config_path, "r", encoding="utf-8") as _config_file:
-                        _new_config_dict = json.load(_config_file)["logger"]
+                    with open(
+                        self.config_file_path, "r", encoding="utf-8"
+                    ) as _config_file:
+                        _new_config_dict = json.load(_config_file) or {}
+                        if "logger" not in _new_config_dict:
+                            logger.warning(
+                                f"'{self.config_file_path}' JSON config file doesn't have 'logger' section!"
+                            )
+                            return
+
+                        _new_config_dict = _new_config_dict["logger"]
                         _config_dict = self.config.model_dump()
-                        _config_dict.update(_new_config_dict)
-                        self.config = LoggerConfigPM(**_config_dict)
+                        _merged_dict = deep_merge(_config_dict, _new_config_dict)
+                        self.config = LoggerConfigPM(**_merged_dict)
                 except Exception:
                     logger.critical(
-                        f"Failed to load '{_config_path}' json config file."
+                        f"Failed to load '{self.config_file_path}' json config file."
                     )
                     raise
-            # elif _config_file_format == "TOML":
+            # elif _file_format == "TOML":
             #     try:
             #         import toml
 
-            #         with open(_config_path, "r", encoding="utf-8") as _config_file:
-            #             _new_config_dict = toml.load(_config_file)["logger"]
+            #         with open(self.config_file_path, "r", encoding="utf-8") as _config_file:
+            #             _new_config_dict = toml.load(_config_file) or {}
+            #             if "logger" not in _new_config_dict:
+            #                 logger.warning(
+            #                     f"'{self.config_file_path}' TOML config file doesn't have 'logger' section!"
+            #                 )
+            #                 return
+
+            #             _new_config_dict = _new_config_dict["logger"]
             #             _config_dict = self.config.model_dump()
-            #             _config_dict.update(_new_config_dict)
-            #             self.config = LoggerConfigPM(**_config_dict)
+            #             _merged_dict = deep_merge(_config_dict, _new_config_dict)
+            #             self.config = LoggerConfigPM(**_merged_dict)
             #     except Exception:
             #         logger.critical(
-            #             f"Failed to load '{_config_path}' toml config file."
+            #             f"Failed to load '{self.config_file_path}' toml config file."
             #         )
             #         raise
 
@@ -422,7 +456,7 @@ class LoggerLoader:
 
             if "sink" not in kwargs:
                 raise ValueError(
-                    f"The `sink` argument is required for custom handler '{handler_name}'!"
+                    f"`sink` argument is required for custom handler '{handler_name}'!"
                 )
 
             _handler_id = logger.add(**kwargs)
@@ -486,93 +520,79 @@ class LoggerLoader:
         try:
             return self.__handlers_map
         except AttributeError:
-            return None
+            self.__handlers_map = {"default": 0}
+
+        return self.__handlers_map
 
     @handlers_map.setter
     def handlers_map(self, handlers_map: dict):
         if not isinstance(handlers_map, dict):
             raise TypeError(
-                f"The `handlers_map` attribute type {type(handlers_map)} is invalid, must be <dict>!."
+                f"`handlers_map` attribute type {type(handlers_map)} is invalid, must be <dict>!."
             )
 
-        self.__handlers_map = handlers_map
+        self.__handlers_map = copy.deepcopy(handlers_map)
 
     ## handlers_map ##
 
-    ## configs_dir ##
-    @property
-    def configs_dir(self) -> str:
-        try:
-            return self.__configs_dir
-        except AttributeError:
-            return LoggerLoader._CONFIGS_DIR
-
-    @configs_dir.setter
-    def configs_dir(self, configs_dir: str):
-        if not isinstance(configs_dir, str):
-            raise TypeError(
-                f"The `configs_dir` attribute type {type(configs_dir)} is invalid, must be a <str>!"
-            )
-
-        configs_dir = configs_dir.strip()
-        if configs_dir == "":
-            raise ValueError("The `configs_dir` attribute value is empty!")
-
-        self.__configs_dir = configs_dir
-
-    ## configs_dir ##
-
-    ## config_filename ##
-    @property
-    def config_filename(self) -> str:
-        try:
-            return self.__config_filename
-        except AttributeError:
-            return LoggerLoader._CONFIG_FILENAME
-
-    @config_filename.setter
-    def config_filename(self, config_filename: str):
-        if not isinstance(config_filename, str):
-            raise TypeError(
-                f"The `config_filename` attribute type {type(config_filename)} is invalid, must be a <str>!"
-            )
-
-        config_filename = config_filename.strip()
-        if config_filename == "":
-            raise ValueError("The `config_filename` attribute value is empty!")
-
-        if (not config_filename.lower().endswith((".yml", ".yaml"))) and (
-            not config_filename.lower().endswith(".json")
-        ):
-            if not config_filename.lower().endswith(".toml"):
-                raise NotImplementedError(
-                    f"The `config_filename` attribute value '{config_filename}' is invalid, TOML file format is not supported yet!"
-                )
-
-            raise ValueError(
-                f"The `config_filename` attribute value '{config_filename}' is invalid, must be a file with '.yml', '.yaml' or '.json' extension!"
-            )
-
-        self.__config_filename = config_filename
-
-    ## config_filename ##
-
     ## config ##
     @property
-    def config(self) -> Union[LoggerConfigPM, None]:
+    def config(self) -> LoggerConfigPM:
         try:
             return self.__config
         except AttributeError:
-            return None
+            self.__config = LoggerConfigPM()
+
+        return self.__config
 
     @config.setter
     def config(self, config: LoggerConfigPM):
         if not isinstance(config, LoggerConfigPM):
             raise TypeError(
-                f"The `config` attribute type {type(config)} is invalid, must be a <class 'LoggerConfigPM'>!"
+                f"`config` attribute type {type(config)} is invalid, must be a <class 'LoggerConfigPM'>!"
             )
 
-        self.__config = config
+        self.__config = copy.deepcopy(config)
 
     ## config ##
+
+    ## config_file_path ##
+    @property
+    def config_file_path(self) -> str:
+        try:
+            return self.__config_file_path
+        except AttributeError:
+            self.__config_file_path = LoggerLoader._CONFIG_FILE_PATH
+
+        return self.__config_file_path
+
+    @config_file_path.setter
+    def config_file_path(self, config_file_path: str):
+        if not isinstance(config_file_path, str):
+            raise TypeError(
+                f"`config_file_path` attribute type {type(config_file_path)} is invalid, must be a <str>!"
+            )
+
+        config_file_path = config_file_path.strip()
+        if config_file_path == "":
+            raise ValueError("`config_file_path` attribute value is empty!")
+
+        if (not config_file_path.lower().endswith((".yml", ".yaml"))) and (
+            not config_file_path.lower().endswith(".json")
+        ):
+            if not config_file_path.lower().endswith(".toml"):
+                raise NotImplementedError(
+                    f"`config_file_path` attribute value '{config_file_path}' is invalid, TOML file format is not supported yet!"
+                )
+
+            raise ValueError(
+                f"`config_file_path` attribute value '{config_file_path}' is invalid, file must be '.yml', '.yaml' or '.json' format!"
+            )
+
+        if not os.path.isabs(config_file_path):
+            config_file_path = os.path.join(os.getcwd(), config_file_path)
+
+        self.__config_file_path = config_file_path
+
+    ## config_file_path ##
     ### ATTRIBUTES ###

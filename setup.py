@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from setuptools import setup
+from setuptools import setup, find_packages
 from distutils.util import convert_path
 
 
@@ -14,7 +14,7 @@ _package_version = _namespace_dict["__version__"]
 
 setup(
     name=_package_name,
-    packages=[_package_name],
+    packages=find_packages(),
     version=f"{_package_version}",
     license="MIT",
     description="beans_logging is a python package for simple logger and easily managing logging modules. It is a Loguru based custom logging package for python projects.",
