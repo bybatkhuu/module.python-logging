@@ -193,16 +193,16 @@ Output:
 [2023-09-01 09:00:00.386 +09:00 | ERROR | __main__:32]: Show me, what value is wrong:
 Traceback (most recent call last):
 
-> File "/home/user/workspaces/projects/python_logging/examples/simple/./main.py", line 30, in <module>
+> File "/home/user/workspaces/projects/beans_logging/examples/simple/./main.py", line 30, in <module>
     nested(0)
     └ <function nested at 0x10802a4c0>
 
-  File "/home/user/workspaces/projects/python_logging/examples/simple/./main.py", line 23, in nested
+  File "/home/user/workspaces/projects/beans_logging/examples/simple/./main.py", line 23, in nested
     divide(5, c)
     │         └ 0
     └ <function divide at 0x1052f31f0>
 
-  File "/home/user/workspaces/projects/python_logging/examples/simple/./main.py", line 17, in divide
+  File "/home/user/workspaces/projects/beans_logging/examples/simple/./main.py", line 17, in divide
     _result = a / b
               │   └ 0
               └ 5
@@ -360,6 +360,7 @@ ENV=development
 DEBUG=true
 
 BEANS_LOGGING_DISABLE_DEFAULT=false
+BEANS_LOGGING_CONFIG_PATH="./configs/logger.yml"
 ```
 
 ## Configuration
