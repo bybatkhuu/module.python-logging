@@ -178,7 +178,7 @@ cd ./examples/simple
 python ./main.py
 ```
 
-Output:
+**Output**:
 
 ```txt
 [2023-09-01 09:00:00.384 +09:00 | TRACE | beans_logging._base:478]: Intercepted modules: ['concurrent', 'concurrent.futures', 'asyncio']; Muted modules: [];
@@ -316,7 +316,7 @@ pip install -r ./requirements.txt
 uvicorn app:app --host=0.0.0.0 --port=8000
 ```
 
-Output:
+**Output**:
 
 ```txt
 [2023-09-01 19:04:44.342 +09:00 | TRACE | beans_logging._base:478]: Intercepted modules: ['watchfiles.watcher', 'asyncio', 'uvicorn', 'watchfiles', 'dotenv.main', 'watchfiles.main', 'fastapi', 'concurrent.futures', 'dotenv', 'concurrent']; Muted modules: ['uvicorn.access', 'uvicorn.error'];
