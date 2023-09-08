@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from beans_logging import LoggerLoader, Logger
+from beans_logging import Logger, LoggerLoader
 from beans_logging.fastapi import add_file_http_handler, add_file_json_http_handler
 
 

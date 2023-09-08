@@ -81,10 +81,7 @@ main()
 	fi
 
 	if [ "${_IS_TEST}" == true ]; then
-		echoInfo "Running test..."
-		# python -m pytest -sv -o log_cli=true || exit 2
-		python -m pytest -sv || exit 2
-		echoOk "Done."
+		./scripts/test.sh || exit 2
 	fi
 
 	echoInfo "Building package..."

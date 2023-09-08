@@ -1,5 +1,6 @@
 # beans_logging
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/bybatkhuu/mod.python-logging/2.build-publish.yml?logo=GitHub)](https://github.com/bybatkhuu/mod.python-logging/actions/workflows/2.build-publish.yml)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/bybatkhuu/mod.python-logging?logo=GitHub)](https://github.com/bybatkhuu/mod.python-logging/releases)
 [![PyPI](https://img.shields.io/pypi/v/beans-logging?logo=PyPi)](https://pypi.org/project/beans-logging)
@@ -173,6 +174,7 @@ Run the [**`examples/simple`**](https://github.com/bybatkhuu/mod.python-logging/
 
 ```sh
 cd ./examples/simple
+
 python ./main.py
 ```
 
@@ -342,8 +344,8 @@ Output:
 To run tests, run the following command:
 
 ```sh
-# Install python development dependencies:
-pip install -r ./requirements.dev.txt
+# Install python test dependencies:
+pip install -r ./requirements.test.txt
 
 # Run tests:
 python -m pytest -sv
@@ -399,6 +401,11 @@ logger:
     mute_modules: []
   extra:
 ```
+
+## Documentation
+
+- [docs](https://github.com/bybatkhuu/mod.python-logging/blob/main/docs/README.md)
+- [scripts](https://github.com/bybatkhuu/mod.python-logging/blob/main/docs/scripts/README.md)
 
 ---
 

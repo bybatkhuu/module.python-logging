@@ -2,7 +2,7 @@
 
 import pytest
 
-from beans_logging import LoggerConfigPM, Logger, logger, LoggerLoader
+from beans_logging import Logger, LoggerConfigPM, LoggerLoader
 
 
 @pytest.fixture
@@ -14,19 +14,27 @@ def logger_loader():
     del _logger_loader
 
 
-def test_init(logger_loader):
+@pytest.fixture
+def logger():
+    from beans_logging import logger
+
+    yield logger
+
+    del logger
+
+
+def test_init(logger, logger_loader):
     logger.info("Testing initialization of 'LoggerLoader'...")
 
     assert isinstance(logger_loader, LoggerLoader)
     assert logger_loader.handlers_map == {"default": 0}
-    assert logger_loader.configs_dir == LoggerLoader._CONFIGS_DIR
-    assert logger_loader.config_filename == LoggerLoader._CONFIG_FILENAME
+    assert logger_loader.config_file_path == LoggerLoader._CONFIG_FILE_PATH
     assert isinstance(logger_loader.config, LoggerConfigPM)
 
-    logger.success("Done: Initialization of 'LoggerLoader'.")
+    logger.success("Done: Initialization of 'LoggerLoader'.\n")
 
 
-def test_load(logger_loader):
+def test_load(logger, logger_loader):
     logger.info("Testing 'load' method of 'LoggerLoader'...")
 
     logger_loader.update_config(config={"level": "TRACE"})
@@ -42,10 +50,10 @@ def test_load(logger_loader):
     _logger.error("Error occured.")
     _logger.critical("CRITICAL ERROR.")
 
-    logger.success("Done: 'load' method.")
+    logger.success("Done: 'load' method.\n")
 
 
-def test_methods():
+def test_methods(logger):
     logger.info("Testing 'logger' methods...")
 
     logger.trace("Tracing...")
@@ -56,4 +64,4 @@ def test_methods():
     logger.error("Error occured.")
     logger.critical("CRITICAL ERROR.")
 
-    logger.success("Done: 'logger' methods.")
+    logger.success("Done: 'logger' methods.\n")
