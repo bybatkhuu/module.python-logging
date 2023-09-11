@@ -55,6 +55,7 @@ main()
 	fi
 	## --- Menu arguments --- ##
 
+
 	if [ -z "${_BUMP_TYPE:-}" ]; then
 		echoError "Bump type is empty! Use '-b=' or '--bump-type=' argument."
 		exit 1

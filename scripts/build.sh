@@ -61,6 +61,7 @@ main()
 	fi
 	## --- Menu arguments --- ##
 
+
 	if [ "${_IS_TEST}" == true ]; then
 		if [ -z "$(which pytest)" ]; then
 			echoError "Pytest not found or not installed."
@@ -83,6 +84,7 @@ main()
 	if [ "${_IS_TEST}" == true ]; then
 		./scripts/test.sh || exit 2
 	fi
+
 
 	echoInfo "Building package..."
 	# python setup.py sdist bdist_wheel || exit 2
