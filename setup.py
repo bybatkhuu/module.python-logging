@@ -37,7 +37,7 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         "PyYAML>=6.0,<7.0",
-        "pydantic>=2.1.1,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0",
+        "pydantic>=2.1.1,<3.0.0",
         "loguru>=0.7.1,<1.0.0",
     ],
     classifiers=[
