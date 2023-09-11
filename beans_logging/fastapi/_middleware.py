@@ -5,6 +5,7 @@ import time
 from uuid import uuid4
 
 from fastapi import Request, Response
+from fastapi.concurrency import run_in_threadpool
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from beans_logging import logger
@@ -155,7 +156,8 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
             _http_info["user_id"] = str(request.state.user_id)
 
         _debug_msg = self.debug_format.format(**_http_info)
-        _logger.debug(_debug_msg)
+        # _logger.debug(_debug_msg)
+        await run_in_threadpool(_logger.debug, _debug_msg)
 
         _start_time = time.time()
         response = await call_next(request)
@@ -218,6 +220,7 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
             )
 
         _msg = _msg_format.format(**_http_info)
-        _logger.bind(http_info=_http_info).log(_LEVEL, _msg)
+        # _logger.bind(http_info=_http_info).log(_LEVEL, _msg)
+        await run_in_threadpool(_logger.bind(http_info=_http_info).log, _LEVEL, _msg)
 
         return response
