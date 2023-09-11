@@ -30,7 +30,7 @@ jobs:
           python -m pip install -U pip
           python -m pip install -r ./requirements.test.txt
       - name: Test with pytest
-        run: ./scripts/test.sh
+        run: ./scripts/test.sh -l
 
   build_publish:
     needs: test
