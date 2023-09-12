@@ -34,7 +34,7 @@ setup(
         "print",
         "custom-logging",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=[
         "PyYAML>=6.0,<7.0",
         "pydantic>=2.1.1,<3.0.0",
@@ -45,7 +45,6 @@ setup(
         "Intended Audience :: Developers",
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",

@@ -31,8 +31,8 @@ It is a `Loguru` based custom logging package for python projects.
 
 ### 1. Prerequisites
 
-- **Python (>= v3.7)**
-- **PyPi (>= v21)**
+- **Python (>= v3.8)**
+- **PyPi (>= v23)**
 
 ### 2. Install beans-logging package
 
