@@ -63,7 +63,7 @@ class LoggerLoader:
         self,
         config: Union[LoggerConfigPM, dict, None] = None,
         config_file_path: str = _CONFIG_FILE_PATH,
-        load_config_file: bool = True,
+        auto_config_file: bool = True,
         auto_load: bool = False,
     ):
         """LoggerLoader constructor method.
@@ -73,7 +73,7 @@ class LoggerLoader:
                                     dict,
                                     None           ], optional): New logger config to update loaded config. Defaults to None.
             config_file_path (str                   , optional): Logger config file path. Defaults to `LoggerLoader._CONFIG_FILE_PATH`.
-            load_config_file (bool                  , optional): Indicates whether to load logger config file or not. Defaults to True.
+            auto_config_file (bool                  , optional): Indicates whether to load logger config file or not. Defaults to True.
             auto_load        (bool                  , optional): Indicates whether to load logger handlers or not. Defaults to False.
         """
 
@@ -83,7 +83,7 @@ class LoggerLoader:
 
         self._load_env_vars()
 
-        if load_config_file:
+        if auto_config_file:
             self._load_config_file()
 
         if config:
