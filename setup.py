@@ -17,7 +17,7 @@ setup(
     packages=find_packages(),
     version=f"{_package_version}",
     license="MIT",
-    description="beans_logging is a python package for simple logger and easily managing logging modules. It is a Loguru based custom logging package for python projects.",
+    description=f"'{_package_name}' is a python package for simple logger and easily managing logging modules. It is a Loguru based custom logging package for python projects.",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     author="Batkhuu Byambajav",
