@@ -47,6 +47,7 @@ class LoggerLoader:
         _load_env_vars()            : Load 'BEANS_LOGGING_CONFIG_PATH' environment variable for logger config file path.
         _load_config_file()         : Load logger config from file.
         _check_env()                : Check environment variables for logger config.
+        _check_config()             : Check logger config to update some options before loading handlers.
         _add_stream_std_handler()   : Add std stream handler to logger.
         _add_file_log_handler()     : Add log file handler to logger.
         _add_file_err_handler()     : Add error log file handler to logger.
@@ -101,6 +102,7 @@ class LoggerLoader:
         self.remove_handler()
 
         self._check_env()
+        self._check_config()
 
         if self.config.stream.std_handler.enabled:
             self._add_stream_std_handler()
@@ -286,6 +288,15 @@ class LoggerLoader:
         if _is_debug and (self.config.level != "TRACE"):
             self.config.level = "DEBUG"
 
+        # if self.config.stream.use_color:
+        #     ## Checking terminal could support xterm colors:
+        #     _TERM = str(os.getenv("TERM")).strip()
+        #     if not "xterm" in _TERM:
+        #         self.config.stream.use_color = False
+
+    def _check_config(self):
+        """Check logger config to update some options before loading handlers."""
+
         if self.config.level == "TRACE":
             self.config.use_diagnose = True
 
@@ -294,11 +305,33 @@ class LoggerLoader:
                 "level_short:<5", "level.icon:<4"
             )
 
-        # if self.config.stream.use_color:
-        #     ## Checking terminal could support xterm colors:
-        #     _TERM = str(os.getenv("TERM")).strip()
-        #     if not "xterm" in _TERM:
-        #         self.config.stream.use_color = False
+        if "{app_name}" in self.config.file.log_handlers.log_path:
+            self.config.file.log_handlers.log_path = (
+                self.config.file.log_handlers.log_path.format(
+                    app_name=self.config.app_name
+                )
+            )
+
+        if "{app_name}" in self.config.file.log_handlers.err_path:
+            self.config.file.log_handlers.err_path = (
+                self.config.file.log_handlers.err_path.format(
+                    app_name=self.config.app_name
+                )
+            )
+
+        if "{app_name}" in self.config.file.json_handlers.log_path:
+            self.config.file.json_handlers.log_path = (
+                self.config.file.json_handlers.log_path.format(
+                    app_name=self.config.app_name
+                )
+            )
+
+        if "{app_name}" in self.config.file.json_handlers.err_path:
+            self.config.file.json_handlers.err_path = (
+                self.config.file.json_handlers.err_path.format(
+                    app_name=self.config.app_name
+                )
+            )
 
     def _add_stream_std_handler(self) -> int:
         """Add std stream handler to logger.
