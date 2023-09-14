@@ -22,11 +22,7 @@ def http_file_format(record: dict) -> str:
             _http_info["datetime"] = record["time"].isoformat()
             record["extra"]["http_info"] = _http_info
 
-        _msg_format = _MSG_FORMAT
-        if "http_file_msg_format" in record["extra"]:
-            _msg_format = record["extra"]["http_file_msg_format"]
-
-        _msg = _msg_format.format(**_http_info)
+        _msg = _MSG_FORMAT.format(**_http_info)
         record["http_message"] = _msg
 
     return "{http_message}\n"
