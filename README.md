@@ -373,7 +373,7 @@ To run tests, run the following command:
 pip install -r ./requirements.test.txt
 
 # Run tests:
-python -m pytest -sv
+python -m pytest -v
 ```
 
 ## Environment Variables

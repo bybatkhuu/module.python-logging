@@ -78,12 +78,12 @@ main()
 	fi
 
 	if [ "${_IS_VERBOSE}" == true ]; then
-		_verbose_param="-vv"
+		_verbose_param="-svv"
 	fi
 
 	echoInfo "Running test..."
 	# shellcheck disable=SC2086
-	python -m pytest -sv ${_coverage_param} ${_logging_param} ${_verbose_param} || exit 2
+	python -m pytest -v ${_coverage_param} ${_logging_param} ${_verbose_param} || exit 2
 	echoOk "Done."
 }
 
