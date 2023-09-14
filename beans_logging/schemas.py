@@ -90,7 +90,7 @@ class JsonHandlersPM(ExtraBaseModel):
 
 
 class FilePM(ExtraBaseModel):
-    logs_dir: str = Field(
+    logs_dir: constr(strip_whitespace=True) = Field(
         default=os.path.join(os.getcwd(), "logs"), min_length=2, max_length=4095
     )
     rotate_size: int = Field(
@@ -144,27 +144,3 @@ class LoggerConfigPM(ExtraBaseModel):
     file: FilePM = Field(default=FilePM())
     intercept: InterceptPM = Field(default=InterceptPM())
     extra: ExtraPM = Field(default=ExtraPM())
-
-    # @model_validator(mode="after")
-    # def _check_log_path(self) -> "LoggerConfigPM":
-    #     if "{app_name}" in self.file.log_handlers.log_path:
-    #         self.file.log_handlers.log_path = self.file.log_handlers.log_path.format(
-    #             app_name=self.app_name
-    #         )
-
-    #     if "{app_name}" in self.file.log_handlers.err_path:
-    #         self.file.log_handlers.err_path = self.file.log_handlers.err_path.format(
-    #             app_name=self.app_name
-    #         )
-
-    #     if "{app_name}" in self.file.json_handlers.log_path:
-    #         self.file.json_handlers.log_path = self.file.json_handlers.log_path.format(
-    #             app_name=self.app_name
-    #         )
-
-    #     if "{app_name}" in self.file.json_handlers.err_path:
-    #         self.file.json_handlers.err_path = self.file.json_handlers.err_path.format(
-    #             app_name=self.app_name
-    #         )
-
-    #     return self
