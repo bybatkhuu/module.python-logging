@@ -13,20 +13,22 @@ from loguru import logger
 
 
 @validate_call
-def create_dir(create_dir: str, quiet: bool = True):
+def create_dir(create_dir: str, warn_mode: str = "DEBUG"):
     """Create directory if `create_dir` doesn't exist.
 
     Args:
-        create_dir (str , required): Create directory path.
-        quiet      (bool, optional): If True, don't log anything unless debug is enabled. Defaults to True.
+        create_dir (str, required): Create directory path.
+        warn_mode  (str, optional): Warning message mode, for example: 'LOG', 'DEBUG', 'QUIET'. Defaults to "QUIET".
     """
 
+    warn_mode = warn_mode.strip().upper()
     if not os.path.isdir(create_dir):
         try:
-            if quiet:
-                logger.debug(f"Creaing '{create_dir}' directory...")
-            else:
-                logger.info(f"Creaing '{create_dir}' directory...")
+            _message = f"Creaing '{create_dir}' directory..."
+            if warn_mode == "LOG":
+                logger.info(_message)
+            elif warn_mode == "DEBUG":
+                logger.debug(_message)
 
             os.makedirs(create_dir)
         except OSError as err:
@@ -36,10 +38,11 @@ def create_dir(create_dir: str, quiet: bool = True):
                 logger.error(f"Failed to create '{create_dir}' directory!")
                 raise
 
-        if quiet:
-            logger.debug(f"Successfully created '{create_dir}' directory.")
-        else:
-            logger.success(f"Successfully created '{create_dir}' directory.")
+        _message = f"Successfully created '{create_dir}' directory."
+        if warn_mode == "LOG":
+            logger.success(_message)
+        elif warn_mode == "DEBUG":
+            logger.debug(_message)
 
 
 @validate_call

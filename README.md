@@ -218,22 +218,45 @@ ZeroDivisionError: division by zero
 logger:
   app_name: "fastapi-app"
   level: "TRACE"
+  use_diagnose: false
+  stream:
+    use_color: true
+    use_icon: false
+    format_str: "[<c>{time:YYYY-MM-DD HH:mm:ss.SSS Z}</c> | <level>{level_short:<5}</level> | <w>{name}:{line}</w>]: <level>{message}</level>"
+    std_handler:
+      enabled: true
   file:
+    logs_dir: "./logs"
+    rotate_size: 10000000 # 10MB
+    rotate_time: "00:00:00"
+    backup_count: 90
     log_handlers:
       enabled: true
+      format_str: "[{time:YYYY-MM-DD HH:mm:ss.SSS Z} | {level_short:<5} | {name}:{line}]: {message}"
+      log_path: "{app_name}.std.all.log"
+      err_path: "{app_name}.std.err.log"
     json_handlers:
       enabled: true
+      use_custom: false
       log_path: "json/{app_name}.json.all.log"
       err_path: "json/{app_name}.json.err.log"
   intercept:
+    auto_load:
+      enabled: true
+      only_base: false
+      ignore_modules: []
+    include_modules: []
     mute_modules: ["uvicorn.access", "uvicorn.error"]
   extra:
-    http_std_msg_format: '<n><w>[{request_id}]</w></n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}" {status_code} {content_length}B {response_time}ms'
     http_std_debug_format: '<n>[{request_id}]</n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}"'
+    http_std_msg_format: '<n><w>[{request_id}]</w></n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}" {status_code} {content_length}B {response_time}ms'
+    http_file_enabled: true
+    http_file_msg_format: '{client_host} {request_id} {user_id} [{datetime}] "{method} {url_path} HTTP/{http_version}" {status_code} {content_length} "{h_referer}" "{h_user_agent}" {response_time}'
     http_log_path: "http/{app_name}.http.access.log"
     http_err_path: "http/{app_name}.http.err.log"
-    http_json_path: "http.json/{app_name}.json.http.access.log"
-    http_json_err_path: "http.json/{app_name}.json.http.err.log"
+    http_json_enabled: true
+    http_json_path: "json.http/{app_name}.json.http.access.log"
+    http_json_err_path: "json.http/{app_name}.json.http.err.log"
 ```
 
 [**`.env`**](https://github.com/bybatkhuu/module.python-logging/blob/main/examples/advanced/.env):
@@ -246,32 +269,37 @@ DEBUG=true
 [**`logger.py`**](https://github.com/bybatkhuu/module.python-logging/blob/main/examples/advanced/logger.py):
 
 ```python
-from beans_logging import LoggerLoader, Logger
-from beans_logging.fastapi import add_file_http_handler, add_file_json_http_handler
+from beans_logging import Logger, LoggerLoader
+from beans_logging.fastapi import add_http_file_handler, add_http_file_json_handler
 
 
 logger_loader = LoggerLoader()
 logger: Logger = logger_loader.load()
 
-add_file_http_handler(
-    logger_loader=logger_loader,
-    log_path=logger_loader.config.extra.http_log_path,
-    err_path=logger_loader.config.extra.http_err_path,
-)
-add_file_json_http_handler(
-    logger_loader=logger_loader,
-    log_path=logger_loader.config.extra.http_json_path,
-    err_path=logger_loader.config.extra.http_json_err_path,
-)
+if logger_loader.config.extra.http_file_enabled:
+    add_http_file_handler(
+        logger_loader=logger_loader,
+        log_path=logger_loader.config.extra.http_log_path,
+        err_path=logger_loader.config.extra.http_err_path,
+    )
+
+if logger_loader.config.extra.http_json_enabled:
+    add_http_file_json_handler(
+        logger_loader=logger_loader,
+        log_path=logger_loader.config.extra.http_json_path,
+        err_path=logger_loader.config.extra.http_json_err_path,
+    )
 ```
 
 [**`app.py`**](https://github.com/bybatkhuu/module.python-logging/blob/main/examples/advanced/app.py):
 
 ```python
+from typing import Union
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
 
 load_dotenv()
 
@@ -291,15 +319,14 @@ async def lifespan(app: FastAPI):
     logger.info("Praparing to shutdown...")
     logger.success("Finished preparation to shutdown.")
 
-
 app = FastAPI(lifespan=lifespan, version=__version__)
 app.add_middleware(
     HttpAccessLogMiddleware,
     has_proxy_headers=True,
-    msg_format=logger_loader.config.extra.http_std_msg_format,
     debug_format=logger_loader.config.extra.http_std_debug_format,
+    msg_format=logger_loader.config.extra.http_std_msg_format,
+    file_msg_format=logger_loader.config.extra.http_file_msg_format,
 )
-
 
 @app.get("/")
 def root():
@@ -319,22 +346,22 @@ uvicorn app:app --host=0.0.0.0 --port=8000
 **Output**:
 
 ```txt
-[2023-09-01 19:04:44.342 +09:00 | TRACE | beans_logging._base:478]: Intercepted modules: ['watchfiles.watcher', 'asyncio', 'uvicorn', 'watchfiles', 'dotenv.main', 'watchfiles.main', 'fastapi', 'concurrent.futures', 'dotenv', 'concurrent']; Muted modules: ['uvicorn.access', 'uvicorn.error'];
-[2023-09-01 19:04:44.360 +09:00 | INFO  | uvicorn.server:76]: Started server process [50837]
-[2023-09-01 19:04:44.360 +09:00 | INFO  | uvicorn.lifespan.on:46]: Waiting for application startup.
-[2023-09-01 19:04:44.360 +09:00 | INFO  | app:21]: Preparing to startup...
-[2023-09-01 19:04:44.361 +09:00 | OK    | app:22]: Finished preparation to startup.
-[2023-09-01 19:04:44.361 +09:00 | INFO  | app:23]: API version: 0.0.1-000000
-[2023-09-01 19:04:44.361 +09:00 | INFO  | uvicorn.lifespan.on:60]: Application startup complete.
-[2023-09-01 19:04:44.363 +09:00 | INFO  | uvicorn.server:218]: Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-[2023-09-01 19:04:46.594 +09:00 | DEBUG | beans_logging.fastapi._middleware:158]: [bcf605800a6d432d8d5021cfea8efd5f] 192.168.1.10 - "GET / HTTP/1.1"
-[2023-09-01 19:04:46.596 +09:00 | OK    | beans_logging.fastapi._middleware:221]: [bcf605800a6d432d8d5021cfea8efd5f] 192.168.1.10 - "GET / HTTP/1.1" 200 17B 1.1ms
-^C[2023-09-01 19:04:48.017 +09:00 | INFO  | uvicorn.server:264]: Shutting down
-[2023-09-01 19:04:48.121 +09:00 | INFO  | uvicorn.lifespan.on:65]: Waiting for application shutdown.
-[2023-09-01 19:04:48.125 +09:00 | INFO  | app:26]: Praparing to shutdown...
-[2023-09-01 19:04:48.126 +09:00 | OK    | app:27]: Finished preparation to shutdown.
-[2023-09-01 19:04:48.127 +09:00 | INFO  | uvicorn.lifespan.on:76]: Application shutdown complete.
-[2023-09-01 19:04:48.128 +09:00 | INFO  | uvicorn.server:86]: Finished server process [50837]
+[2023-09-01 12:37:38.569 +09:00 | TRACE | beans_logging._base:499]: Intercepted modules: ['watchfiles.watcher', 'asyncio', 'watchfiles', 'concurrent', 'dotenv', 'concurrent.futures', 'fastapi', 'dotenv.main', 'uvicorn', 'watchfiles.main']; Muted modules: ['uvicorn.error', 'uvicorn.access'];
+[2023-09-01 12:37:38.579 +09:00 | INFO  | uvicorn.server:76]: Started server process [22599]
+[2023-09-01 12:37:38.579 +09:00 | INFO  | uvicorn.lifespan.on:46]: Waiting for application startup.
+[2023-09-01 12:37:38.579 +09:00 | INFO  | app:21]: Preparing to startup...
+[2023-09-01 12:37:38.580 +09:00 | OK    | app:22]: Finished preparation to startup.
+[2023-09-01 12:37:38.580 +09:00 | INFO  | app:23]: API version: 0.0.1-000000
+[2023-09-01 12:37:38.580 +09:00 | INFO  | uvicorn.lifespan.on:60]: Application startup complete.
+[2023-09-01 12:37:38.582 +09:00 | INFO  | uvicorn.server:218]: Uvicorn running on http://0.0.0.0:9000 (Press CTRL+C to quit)
+[2023-09-01 12:37:48.487 +09:00 | DEBUG | anyio._backends._asyncio:807]: [0b9f972939054a58ba10e7a39a12bd21] 127.0.0.1 - "GET / HTTP/1.1"
+[2023-09-01 12:37:48.488 +09:00 | OK    | anyio._backends._asyncio:807]: [0b9f972939054a58ba10e7a39a12bd21] 127.0.0.1 - "GET / HTTP/1.1" 200 17B 0.5ms
+^C[2023-09-01 12:37:51.845 +09:00 | INFO  | uvicorn.server:264]: Shutting down
+[2023-09-01 12:37:51.949 +09:00 | INFO  | uvicorn.lifespan.on:65]: Waiting for application shutdown.
+[2023-09-01 12:37:51.951 +09:00 | INFO  | app:26]: Praparing to shutdown...
+[2023-09-01 12:37:51.952 +09:00 | OK    | app:27]: Finished preparation to shutdown.
+[2023-09-01 12:37:51.952 +09:00 | INFO  | uvicorn.lifespan.on:76]: Application shutdown complete.
+[2023-09-01 12:37:51.953 +09:00 | INFO  | uvicorn.server:86]: Finished server process [22599]
 ```
 
 ---

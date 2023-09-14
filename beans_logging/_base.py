@@ -5,7 +5,7 @@ import os
 import copy
 import json
 import logging
-from typing import Union
+from typing import Union, Dict, Any
 
 ## Third-party libraries
 import yaml
@@ -15,12 +15,12 @@ from loguru import logger
 
 ## Internal modules
 from ._utils import create_dir, deep_merge
-from ._handler import InterceptHandler
+from ._handlers import InterceptHandler
 from .rotation import RotationChecker
-from .schema import LoggerConfigPM
-from .sink import std_sink
-from .format import json_format
-from .filter import (
+from .schemas import LoggerConfigPM
+from .sinks import std_sink
+from .formats import json_format
+from .filters import (
     use_all_filter,
     use_std_filter,
     use_file_filter,
@@ -36,9 +36,9 @@ class LoggerLoader:
     Attributes:
         _CONFIG_FILE_PATH (str           ): Default logger config file path. Defaults to '${PWD}/configs/logger.yml'.
 
-        handlers_map       (dict          ): Registered logger handlers map as dictionary. Defaults to None.
-        config             (LoggerConfigPM): Logger config as <class 'LoggerConfigPM'>. Defaults to None.
-        config_file_path   (str           ): Logger config file path. Defaults to `LoggerLoader._CONFIG_FILE_PATH`.
+        handlers_map      (dict          ): Registered logger handlers map as dictionary. Defaults to None.
+        config            (LoggerConfigPM): Logger config as <class 'LoggerConfigPM'>. Defaults to None.
+        config_file_path  (str           ): Logger config file path. Defaults to `LoggerLoader._CONFIG_FILE_PATH`.
 
     Methods:
         load()                      : Load logger handlers based on logger config.
@@ -61,7 +61,7 @@ class LoggerLoader:
     @validate_call
     def __init__(
         self,
-        config: Union[LoggerConfigPM, dict, None] = None,
+        config: Union[LoggerConfigPM, Dict[str, Any], None] = None,
         config_file_path: str = _CONFIG_FILE_PATH,
         auto_config_file: bool = True,
         auto_load: bool = False,
@@ -79,15 +79,14 @@ class LoggerLoader:
 
         self.handlers_map = {"default": 0}
         self.config = LoggerConfigPM()
+        if config:
+            self.update_config(config=config)
         self.config_file_path = config_file_path
 
         self._load_env_vars()
 
         if auto_config_file:
             self._load_config_file()
-
-        if config:
-            self.update_config(config=config)
 
         if auto_load:
             self.load()
@@ -156,7 +155,7 @@ class LoggerLoader:
         self.handlers_map.clear()
 
     @validate_call
-    def update_config(self, config: Union[LoggerConfigPM, dict]):
+    def update_config(self, config: Union[LoggerConfigPM, Dict[str, Any]]):
         """Update logger config with new config.
 
         Args:
@@ -166,18 +165,20 @@ class LoggerLoader:
             Exception: Failed to load `config` argument into <class 'LoggerConfigPM'>.
         """
 
-        try:
-            if isinstance(config, dict):
-                _config_dict = self.config.model_dump()
-                _merged_dict = deep_merge(_config_dict, config)
+        if isinstance(config, dict):
+            _config_dict = self.config.model_dump()
+            _merged_dict = deep_merge(_config_dict, config)
+            print(_merged_dict)
+            try:
                 self.config = LoggerConfigPM(**_merged_dict)
-            elif isinstance(config, LoggerConfigPM):
-                self.config = config
-        except Exception:
-            logger.critical(
-                "Failed to load `config` argument into <class 'LoggerConfigPM'>."
-            )
-            raise
+            except Exception:
+                logger.critical(
+                    "Failed to load `config` argument into <class 'LoggerConfigPM'>."
+                )
+                raise
+
+        elif isinstance(config, LoggerConfigPM):
+            self.config = config
 
     def _load_env_vars(self):
         """Load 'BEANS_LOGGING_CONFIG_PATH' environment variable for logger config file path."""
@@ -436,7 +437,7 @@ class LoggerLoader:
                         _log_path = _log_path.format(app_name=self.config.app_name)
 
                     _logs_dir, _ = os.path.split(_log_path)
-                    create_dir(create_dir=_logs_dir)
+                    create_dir(create_dir=_logs_dir, warn_mode="DEBUG")
                     kwargs["sink"] = _log_path
 
                 if "format" not in kwargs:
@@ -516,7 +517,7 @@ class LoggerLoader:
     ### ATTRIBUTES ###
     ## handlers_map ##
     @property
-    def handlers_map(self) -> Union[dict, None]:
+    def handlers_map(self) -> Dict[str, int]:
         try:
             return self.__handlers_map
         except AttributeError:
@@ -525,7 +526,7 @@ class LoggerLoader:
         return self.__handlers_map
 
     @handlers_map.setter
-    def handlers_map(self, handlers_map: dict):
+    def handlers_map(self, handlers_map: Dict[str, int]):
         if not isinstance(handlers_map, dict):
             raise TypeError(
                 f"`handlers_map` attribute type {type(handlers_map)} is invalid, must be <dict>!."

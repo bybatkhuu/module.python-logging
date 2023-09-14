@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from beans_logging.filter import use_all_filter
+from beans_logging.filters import use_all_filter
 
 
 def use_http_filter(record: dict) -> bool:
@@ -16,7 +16,7 @@ def use_http_filter(record: dict) -> bool:
     if not use_all_filter(record):
         return False
 
-    if "http_info" in record["extra"]:
-        return True
+    if "http_info" not in record["extra"]:
+        return False
 
-    return False
+    return True
