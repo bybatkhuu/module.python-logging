@@ -16,6 +16,10 @@ from pydantic import (
 )
 
 
+class ExtraBaseModel(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
 class LevelEnum(str, Enum):
     TRACE = "TRACE"
     DEBUG = "DEBUG"
@@ -26,35 +30,33 @@ class LevelEnum(str, Enum):
     CRITICAL = "CRITICAL"
 
 
-class StdHandlerPM(BaseModel):
+class StdHandlerPM(ExtraBaseModel):
     enabled: bool = Field(default=True)
 
-    model_config = ConfigDict(extra="allow")
 
-
-class StreamPM(BaseModel):
+class StreamPM(ExtraBaseModel):
     use_color: bool = Field(default=True)
     use_icon: bool = Field(default=False)
     format_str: constr(strip_whitespace=True) = Field(
         default="[<c>{time:YYYY-MM-DD HH:mm:ss.SSS Z}</c> | <level>{level_short:<5}</level> | <w>{name}:{line}</w>]: <level>{message}</level>",
-        min_length=9,
+        min_length=3,
+        max_length=511,
     )
     std_handler: StdHandlerPM = Field(default=StdHandlerPM())
 
-    model_config = ConfigDict(extra="allow")
 
-
-class LogHandlersPM(BaseModel):
+class LogHandlersPM(ExtraBaseModel):
     enabled: bool = Field(default=False)
     format_str: constr(strip_whitespace=True) = Field(
         default="[{time:YYYY-MM-DD HH:mm:ss.SSS Z} | {level_short:<5} | {name}:{line}]: {message}",
-        min_length=9,
+        min_length=4,
+        max_length=511,
     )
     log_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.std.all.log", min_length=5, max_length=255
+        default="{app_name}.std.all.log", min_length=4, max_length=4095
     )
     err_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.std.err.log", min_length=5, max_length=255
+        default="{app_name}.std.err.log", min_length=4, max_length=4095
     )
 
     @model_validator(mode="after")
@@ -66,17 +68,15 @@ class LogHandlersPM(BaseModel):
 
         return self
 
-    model_config = ConfigDict(extra="allow")
 
-
-class JsonHandlersPM(BaseModel):
+class JsonHandlersPM(ExtraBaseModel):
     enabled: bool = Field(default=False)
     use_custom: bool = Field(default=False)
     log_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.json.all.log", min_length=5, max_length=255
+        default="{app_name}.json.all.log", min_length=4, max_length=4095
     )
     err_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.json.err.log", min_length=5, max_length=255
+        default="{app_name}.json.err.log", min_length=4, max_length=4095
     )
 
     @model_validator(mode="after")
@@ -88,12 +88,10 @@ class JsonHandlersPM(BaseModel):
 
         return self
 
-    model_config = ConfigDict(extra="allow")
 
-
-class FilePM(BaseModel):
+class FilePM(ExtraBaseModel):
     logs_dir: str = Field(
-        default=os.path.join(os.getcwd(), "logs"), min_length=2, max_length=4096
+        default=os.path.join(os.getcwd(), "logs"), min_length=2, max_length=4095
     )
     rotate_size: int = Field(
         default=10_000_000, ge=1_000, lt=1_000_000_000  # 10MB = 10 * 1000 * 1000
@@ -113,30 +111,24 @@ class FilePM(BaseModel):
             val = datetime.time.fromisoformat(val)
         return val
 
-    model_config = ConfigDict(extra="allow")
 
-
-class AutoLoadPM(BaseModel):
+class AutoLoadPM(ExtraBaseModel):
     enabled: bool = Field(default=True)
     only_base: bool = Field(default=False)
     ignore_modules: List[str] = Field(default=[])
 
-    model_config = ConfigDict(extra="allow")
 
-
-class InterceptPM(BaseModel):
+class InterceptPM(ExtraBaseModel):
     auto_load: AutoLoadPM = Field(default=AutoLoadPM())
     include_modules: List[str] = Field(default=[])
     mute_modules: List[str] = Field(default=[])
 
-    model_config = ConfigDict(extra="allow")
+
+class ExtraPM(ExtraBaseModel):
+    pass
 
 
-class ExtraPM(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-
-class LoggerConfigPM(BaseModel):
+class LoggerConfigPM(ExtraBaseModel):
     app_name: constr(strip_whitespace=True) = Field(
         default=os.path.splitext(os.path.basename(sys.argv[0]))[0]
         .strip()
@@ -153,28 +145,26 @@ class LoggerConfigPM(BaseModel):
     intercept: InterceptPM = Field(default=InterceptPM())
     extra: ExtraPM = Field(default=ExtraPM())
 
-    @model_validator(mode="after")
-    def _check_log_path(self) -> "LoggerConfigPM":
-        if "{app_name}" in self.file.log_handlers.log_path:
-            self.file.log_handlers.log_path = self.file.log_handlers.log_path.format(
-                app_name=self.app_name
-            )
+    # @model_validator(mode="after")
+    # def _check_log_path(self) -> "LoggerConfigPM":
+    #     if "{app_name}" in self.file.log_handlers.log_path:
+    #         self.file.log_handlers.log_path = self.file.log_handlers.log_path.format(
+    #             app_name=self.app_name
+    #         )
 
-        if "{app_name}" in self.file.log_handlers.err_path:
-            self.file.log_handlers.err_path = self.file.log_handlers.err_path.format(
-                app_name=self.app_name
-            )
+    #     if "{app_name}" in self.file.log_handlers.err_path:
+    #         self.file.log_handlers.err_path = self.file.log_handlers.err_path.format(
+    #             app_name=self.app_name
+    #         )
 
-        if "{app_name}" in self.file.json_handlers.log_path:
-            self.file.json_handlers.log_path = self.file.json_handlers.log_path.format(
-                app_name=self.app_name
-            )
+    #     if "{app_name}" in self.file.json_handlers.log_path:
+    #         self.file.json_handlers.log_path = self.file.json_handlers.log_path.format(
+    #             app_name=self.app_name
+    #         )
 
-        if "{app_name}" in self.file.json_handlers.err_path:
-            self.file.json_handlers.err_path = self.file.json_handlers.err_path.format(
-                app_name=self.app_name
-            )
+    #     if "{app_name}" in self.file.json_handlers.err_path:
+    #         self.file.json_handlers.err_path = self.file.json_handlers.err_path.format(
+    #             app_name=self.app_name
+    #         )
 
-        return self
-
-    model_config = ConfigDict(extra="allow")
+    #     return self

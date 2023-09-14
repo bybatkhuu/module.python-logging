@@ -23,7 +23,7 @@ def logger():
     del logger
 
 
-def test_init(logger, logger_loader):
+def test_init(logger: Logger, logger_loader: LoggerLoader):
     logger.info("Testing initialization of 'LoggerLoader'...")
 
     assert isinstance(logger_loader, LoggerLoader)
@@ -34,7 +34,7 @@ def test_init(logger, logger_loader):
     logger.success("Done: Initialization of 'LoggerLoader'.\n")
 
 
-def test_load(logger, logger_loader):
+def test_load(logger: Logger, logger_loader: LoggerLoader):
     logger.info("Testing 'load' method of 'LoggerLoader'...")
 
     logger_loader.update_config(config={"level": "TRACE"})
@@ -53,7 +53,7 @@ def test_load(logger, logger_loader):
     logger.success("Done: 'load' method.\n")
 
 
-def test_methods(logger):
+def test_methods(logger: Logger):
     logger.info("Testing 'logger' methods...")
 
     logger.trace("Tracing...")

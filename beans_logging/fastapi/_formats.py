@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-def file_http_format(record: dict) -> str:
+def http_file_format(record: dict) -> str:
     """Http access log file format.
 
     Args:
@@ -10,6 +10,8 @@ def file_http_format(record: dict) -> str:
     Returns:
         str: Format for http access log record.
     """
+
+    _MSG_FORMAT = '{client_host} {request_id} {user_id} [{datetime}] "{method} {url_path} HTTP/{http_version}" {status_code} {content_length} "{h_referer}" "{h_user_agent}" {response_time}'
 
     if "http_info" not in record["extra"]:
         return ""
@@ -20,14 +22,17 @@ def file_http_format(record: dict) -> str:
             _http_info["datetime"] = record["time"].isoformat()
             record["extra"]["http_info"] = _http_info
 
-        _msg_format = '{client_host} {request_id} {user_id} [{datetime}] "{method} {url_path} HTTP/{http_version}" {status_code} {content_length} "{h_referer}" "{h_user_agent}" {response_time}'
+        _msg_format = _MSG_FORMAT
+        if "http_file_msg_format" in record["extra"]:
+            _msg_format = record["extra"]["http_file_msg_format"]
+
         _msg = _msg_format.format(**_http_info)
         record["http_message"] = _msg
 
     return "{http_message}\n"
 
 
-def file_json_http_format(record: dict) -> str:
+def http_file_json_format(record: dict) -> str:
     """Http access json log file format.
 
     Args:
