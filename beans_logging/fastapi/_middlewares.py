@@ -20,18 +20,15 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
     Attributes:
         _DEBUG_FORMAT     (str ): Default http access log debug message format. Defaults to '<n>[{request_id}]</n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}"'.
         _MSG_FORMAT       (str ): Default http access log message format. Defaults to '<n><w>[{request_id}]</w></n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}" {status_code} {content_length}B {response_time}ms'.
-        _FILE_MSG_FORMAT  (str ): Default http access log file message format. Defaults to '{client_host} {request_id} {user_id} [{datetime}] "{method} {url_path} HTTP/{http_version}" {status_code} {content_length} "{h_referer}" "{h_user_agent}" {response_time}'.
 
         has_proxy_headers (bool): If True, use proxy headers to get http request info. Defaults to False.
         has_cf_headers    (bool): If True, use cloudflare headers to get http request info. Defaults to False.
         debug_format      (str ): Http access log debug message format. Defaults to `HttpAccessLogMiddleware._DEBUG_FORMAT`.
         msg_format        (str ): Http access log message format. Defaults to `HttpAccessLogMiddleware._MSG_FORMAT`.
-        file_msg_format   (str ): Http access log file message format. Defaults to `HttpAccessLogMiddleware._FILE_MSG_FORMAT`.
     """
 
     _DEBUG_FORMAT = '<n>[{request_id}]</n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}"'
     _MSG_FORMAT = '<n><w>[{request_id}]</w></n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}" {status_code} {content_length}B {response_time}ms'
-    _FILE_MSG_FORMAT = '{client_host} {request_id} {user_id} [{datetime}] "{method} {url_path} HTTP/{http_version}" {status_code} {content_length} "{h_referer}" "{h_user_agent}" {response_time}'
 
     def __init__(
         self,
@@ -40,14 +37,12 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         has_cf_headers: bool = False,
         debug_format: str = _DEBUG_FORMAT,
         msg_format: str = _MSG_FORMAT,
-        file_msg_format: str = _FILE_MSG_FORMAT,
     ):
         super().__init__(app)
         self.has_proxy_headers = has_proxy_headers
         self.has_cf_headers = has_cf_headers
         self.debug_format = debug_format
         self.msg_format = msg_format
-        self.file_msg_format = file_msg_format
 
     async def dispatch(self, request: Request, call_next) -> Response:
         _logger = logger.opt(colors=True, record=True)
@@ -236,10 +231,7 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         _msg = _msg_format.format(**_http_info)
         # _logger.bind(http_info=_http_info).log(_LEVEL, _msg)
         await run_in_threadpool(
-            _logger.bind(
-                http_info=_http_info,
-                http_file_msg_format=self.file_msg_format,
-            ).log,
+            _logger.bind(http_info=_http_info).log,
             _LEVEL,
             _msg,
         )

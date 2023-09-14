@@ -251,7 +251,6 @@ logger:
     http_std_debug_format: '<n>[{request_id}]</n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}"'
     http_std_msg_format: '<n><w>[{request_id}]</w></n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}" {status_code} {content_length}B {response_time}ms'
     http_file_enabled: true
-    http_file_msg_format: '{client_host} {request_id} {user_id} [{datetime}] "{method} {url_path} HTTP/{http_version}" {status_code} {content_length} "{h_referer}" "{h_user_agent}" {response_time}'
     http_log_path: "http/{app_name}.http.access.log"
     http_err_path: "http/{app_name}.http.err.log"
     http_json_enabled: true
@@ -325,7 +324,6 @@ app.add_middleware(
     has_proxy_headers=True,
     debug_format=logger_loader.config.extra.http_std_debug_format,
     msg_format=logger_loader.config.extra.http_std_msg_format,
-    file_msg_format=logger_loader.config.extra.http_file_msg_format,
 )
 
 @app.get("/")
