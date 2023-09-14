@@ -9,9 +9,9 @@ from typing import Union, Dict, Any
 
 ## Third-party libraries
 import yaml
-from pydantic import validate_call
-from loguru._logger import Logger
 from loguru import logger
+from loguru._logger import Logger
+from pydantic import validate_call
 
 ## Internal modules
 from ._utils import create_dir, deep_merge
@@ -170,7 +170,6 @@ class LoggerLoader:
         if isinstance(config, dict):
             _config_dict = self.config.model_dump()
             _merged_dict = deep_merge(_config_dict, config)
-            print(_merged_dict)
             try:
                 self.config = LoggerConfigPM(**_merged_dict)
             except Exception:
@@ -470,7 +469,7 @@ class LoggerLoader:
                         _log_path = _log_path.format(app_name=self.config.app_name)
 
                     _logs_dir, _ = os.path.split(_log_path)
-                    create_dir(create_dir=_logs_dir, warn_mode="DEBUG")
+                    create_dir(create_dir=_logs_dir)
                     kwargs["sink"] = _log_path
 
                 if "format" not in kwargs:

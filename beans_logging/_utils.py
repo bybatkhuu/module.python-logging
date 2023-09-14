@@ -4,16 +4,14 @@ import os
 import copy
 import errno
 
-# import logging
-
-from pydantic import validate_call
 from loguru import logger
+from pydantic import validate_call
 
-# logger = logging.getLogger(__name__)
+from ._const import WarnEnum
 
 
 @validate_call
-def create_dir(create_dir: str, warn_mode: str = "DEBUG"):
+def create_dir(create_dir: str, warn_mode: WarnEnum = WarnEnum.DEBUG):
     """Create directory if `create_dir` doesn't exist.
 
     Args:
@@ -21,13 +19,12 @@ def create_dir(create_dir: str, warn_mode: str = "DEBUG"):
         warn_mode  (str, optional): Warning message mode, for example: 'LOG', 'DEBUG', 'QUIET'. Defaults to "QUIET".
     """
 
-    warn_mode = warn_mode.strip().upper()
     if not os.path.isdir(create_dir):
         try:
             _message = f"Creaing '{create_dir}' directory..."
-            if warn_mode == "LOG":
+            if warn_mode == WarnEnum.LOG:
                 logger.info(_message)
-            elif warn_mode == "DEBUG":
+            elif warn_mode == WarnEnum.DEBUG:
                 logger.debug(_message)
 
             os.makedirs(create_dir)
@@ -39,9 +36,9 @@ def create_dir(create_dir: str, warn_mode: str = "DEBUG"):
                 raise
 
         _message = f"Successfully created '{create_dir}' directory."
-        if warn_mode == "LOG":
+        if warn_mode == WarnEnum.LOG:
             logger.success(_message)
-        elif warn_mode == "DEBUG":
+        elif warn_mode == WarnEnum.DEBUG:
             logger.debug(_message)
 
 
