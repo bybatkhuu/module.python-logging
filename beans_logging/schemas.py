@@ -66,10 +66,10 @@ class LogHandlersPM(ExtraBaseModel):
         max_length=511,
     )
     log_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.std.all.log", min_length=4, max_length=1024
+        default="{app_name}.std.all.log", min_length=4, max_length=1023
     )
     err_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.std.err.log", min_length=4, max_length=1024
+        default="{app_name}.std.err.log", min_length=4, max_length=1023
     )
 
     @model_validator(mode="after")
@@ -86,10 +86,10 @@ class JsonHandlersPM(ExtraBaseModel):
     enabled: bool = Field(default=False)
     use_custom: bool = Field(default=False)
     log_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.json.all.log", min_length=4, max_length=1024
+        default="{app_name}.json.all.log", min_length=4, max_length=1023
     )
     err_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.json.err.log", min_length=4, max_length=1024
+        default="{app_name}.json.err.log", min_length=4, max_length=1023
     )
 
     @model_validator(mode="after")
@@ -104,7 +104,7 @@ class JsonHandlersPM(ExtraBaseModel):
 
 class FilePM(ExtraBaseModel):
     logs_dir: constr(strip_whitespace=True) = Field(
-        default_factory=_get_logs_dir, min_length=2, max_length=1024
+        default_factory=_get_logs_dir, min_length=2, max_length=1023
     )
     rotate_size: int = Field(
         default=10_000_000, ge=1_000, lt=1_000_000_000  # 10MB = 10 * 1000 * 1000
