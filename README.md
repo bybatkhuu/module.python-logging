@@ -386,6 +386,7 @@ DEBUG=true
 
 BEANS_LOGGING_DISABLE_DEFAULT=false
 BEANS_LOGGING_CONFIG_PATH="./configs/logger.yml"
+BEANS_LOGGING_DIR="./logs"
 ```
 
 ## Configuration

@@ -287,6 +287,9 @@ class LoggerLoader:
         if _is_debug and (self.config.level != "TRACE"):
             self.config.level = "DEBUG"
 
+        if "BEANS_LOGGING_DIR" in os.environ:
+            self.config.file.logs_dir = os.getenv("BEANS_LOGGING_DIR")
+
         # if self.config.stream.use_color:
         #     ## Checking terminal could support xterm colors:
         #     _TERM = str(os.getenv("TERM")).strip()
@@ -302,6 +305,11 @@ class LoggerLoader:
         if self.config.stream.use_icon:
             self.config.stream.format_str = self.config.stream.format_str.replace(
                 "level_short:<5", "level.icon:<4"
+            )
+
+        if not os.path.isabs(self.config.file.logs_dir):
+            self.config.file.logs_dir = os.path.join(
+                os.getcwd(), self.config.file.logs_dir
             )
 
         if "{app_name}" in self.config.file.log_handlers.log_path:
