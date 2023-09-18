@@ -16,6 +16,19 @@ from pydantic import (
 )
 
 
+def _get_logs_dir() -> str:
+    return os.path.join(os.getcwd(), "logs")
+
+
+def _get_app_name() -> str:
+    return (
+        os.path.splitext(os.path.basename(sys.argv[0]))[0]
+        .strip()
+        .replace(" ", "-")
+        .lower()
+    )
+
+
 class ExtraBaseModel(BaseModel):
     model_config = ConfigDict(extra="allow")
 
@@ -42,7 +55,7 @@ class StreamPM(ExtraBaseModel):
         min_length=3,
         max_length=511,
     )
-    std_handler: StdHandlerPM = Field(default=StdHandlerPM())
+    std_handler: StdHandlerPM = Field(default_factory=StdHandlerPM)
 
 
 class LogHandlersPM(ExtraBaseModel):
@@ -53,10 +66,10 @@ class LogHandlersPM(ExtraBaseModel):
         max_length=511,
     )
     log_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.std.all.log", min_length=4, max_length=4095
+        default="{app_name}.std.all.log", min_length=4, max_length=1023
     )
     err_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.std.err.log", min_length=4, max_length=4095
+        default="{app_name}.std.err.log", min_length=4, max_length=1023
     )
 
     @model_validator(mode="after")
@@ -73,10 +86,10 @@ class JsonHandlersPM(ExtraBaseModel):
     enabled: bool = Field(default=False)
     use_custom: bool = Field(default=False)
     log_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.json.all.log", min_length=4, max_length=4095
+        default="{app_name}.json.all.log", min_length=4, max_length=1023
     )
     err_path: constr(strip_whitespace=True) = Field(
-        default="{app_name}.json.err.log", min_length=4, max_length=4095
+        default="{app_name}.json.err.log", min_length=4, max_length=1023
     )
 
     @model_validator(mode="after")
@@ -91,7 +104,7 @@ class JsonHandlersPM(ExtraBaseModel):
 
 class FilePM(ExtraBaseModel):
     logs_dir: constr(strip_whitespace=True) = Field(
-        default=os.path.join(os.getcwd(), "logs"), min_length=2, max_length=4095
+        default_factory=_get_logs_dir, min_length=2, max_length=1023
     )
     rotate_size: int = Field(
         default=10_000_000, ge=1_000, lt=1_000_000_000  # 10MB = 10 * 1000 * 1000
@@ -101,8 +114,8 @@ class FilePM(ExtraBaseModel):
     encoding: constr(strip_whitespace=True) = Field(
         default="utf8", min_length=2, max_length=31
     )
-    log_handlers: LogHandlersPM = Field(default=LogHandlersPM())
-    json_handlers: JsonHandlersPM = Field(default=JsonHandlersPM())
+    log_handlers: LogHandlersPM = Field(default_factory=LogHandlersPM)
+    json_handlers: JsonHandlersPM = Field(default_factory=JsonHandlersPM)
 
     @field_validator("rotate_time", mode="before")
     @classmethod
@@ -119,7 +132,7 @@ class AutoLoadPM(ExtraBaseModel):
 
 
 class InterceptPM(ExtraBaseModel):
-    auto_load: AutoLoadPM = Field(default=AutoLoadPM())
+    auto_load: AutoLoadPM = Field(default_factory=AutoLoadPM)
     include_modules: List[str] = Field(default=[])
     mute_modules: List[str] = Field(default=[])
 
@@ -130,17 +143,14 @@ class ExtraPM(ExtraBaseModel):
 
 class LoggerConfigPM(ExtraBaseModel):
     app_name: constr(strip_whitespace=True) = Field(
-        default=os.path.splitext(os.path.basename(sys.argv[0]))[0]
-        .strip()
-        .replace(" ", "_")
-        .lower(),
+        default_factory=_get_app_name,
         min_length=1,
         max_length=127,
     )
     level: LevelEnum = Field(default=LevelEnum.INFO)
     use_backtrace: bool = Field(default=True)
     use_diagnose: bool = Field(default=False)
-    stream: StreamPM = Field(default=StreamPM())
-    file: FilePM = Field(default=FilePM())
-    intercept: InterceptPM = Field(default=InterceptPM())
-    extra: ExtraPM = Field(default=ExtraPM())
+    stream: StreamPM = Field(default_factory=StreamPM)
+    file: FilePM = Field(default_factory=FilePM)
+    intercept: InterceptPM = Field(default_factory=InterceptPM)
+    extra: ExtraPM = Field(default_factory=ExtraPM)
