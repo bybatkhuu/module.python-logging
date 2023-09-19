@@ -25,6 +25,7 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         has_cf_headers    (bool): If True, use cloudflare headers to get http request info. Defaults to False.
         debug_format      (str ): Http access log debug message format. Defaults to `HttpAccessLogMiddleware._DEBUG_FORMAT`.
         msg_format        (str ): Http access log message format. Defaults to `HttpAccessLogMiddleware._MSG_FORMAT`.
+        use_debug_log     (bool): If True, use debug log to log http access log. Defaults to True.
     """
 
     _DEBUG_FORMAT = '<n>[{request_id}]</n> {client_host} {user_id} "<u>{method} {url_path}</u> HTTP/{http_version}"'
@@ -37,12 +38,14 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         has_cf_headers: bool = False,
         debug_format: str = _DEBUG_FORMAT,
         msg_format: str = _MSG_FORMAT,
+        use_debug_log: bool = True,
     ):
         super().__init__(app)
         self.has_proxy_headers = has_proxy_headers
         self.has_cf_headers = has_cf_headers
         self.debug_format = debug_format
         self.msg_format = msg_format
+        self.use_debug_log = use_debug_log
 
     async def dispatch(self, request: Request, call_next) -> Response:
         _logger = logger.opt(colors=True, record=True)
@@ -53,6 +56,8 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
             _http_info["request_id"] = request.headers.get("X-Request-ID")
         elif "X-Correlation-ID" in request.headers:
             _http_info["request_id"] = request.headers.get("X-Correlation-ID")
+
+        ## Set request_id to request state:
         request.state.request_id = _http_info["request_id"]
 
         _http_info["client_host"] = request.client.host
@@ -161,16 +166,25 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         if hasattr(request.state, "user_id"):
             _http_info["user_id"] = str(request.state.user_id)
 
-        _debug_msg = self.debug_format.format(**_http_info)
-        # _logger.debug(_debug_msg)
-        await run_in_threadpool(
-            _logger.debug,
-            _debug_msg,
-        )
+        ## Debug log:
+        if self.use_debug_log:
+            _debug_msg = self.debug_format.format(**_http_info)
+            # _logger.debug(_debug_msg)
+            await run_in_threadpool(
+                _logger.debug,
+                _debug_msg,
+            )
+        ## Debug log
 
+        ## Set http info to request state:
+        request.state.http_info = _http_info
+
+        ## Process request:
         _start_time = time.time()
         response = await call_next(request)
         _http_info["response_time"] = round((time.time() - _start_time) * 1000, 1)
+        ## Response processed
+
         if "X-Process-Time" in response.headers:
             try:
                 _http_info["response_time"] = float(
@@ -208,6 +222,7 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
                 "Can not serialize `http_info` to json string in HttpAccessLogMiddleware!"
             )
 
+        ## Http access log:
         _LEVEL = "INFO"
         _msg_format = self.msg_format
         if _http_info["status_code"] < 200:
@@ -225,7 +240,7 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         elif 500 <= _http_info["status_code"]:
             _LEVEL = "ERROR"
             _msg_format = (
-                f'<r>{_msg_format.replace("{status_code}", "<n>{status_code}</n>")}</r>'
+                f'{_msg_format.replace("{status_code}", "<n>{status_code}</n>")}'
             )
 
         _msg = _msg_format.format(**_http_info)
@@ -235,5 +250,6 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
             _LEVEL,
             _msg,
         )
+        ## Http access log
 
         return response
