@@ -1,46 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 import datetime
-from enum import Enum
 from typing import List
 
-from pydantic import (
-    BaseModel,
-    constr,
-    Field,
-    field_validator,
-    model_validator,
-    ConfigDict,
-)
+from pydantic import BaseModel, constr, Field, validator, root_validator
 
-
-def _get_logs_dir() -> str:
-    return os.path.join(os.getcwd(), "logs")
-
-
-def _get_app_name() -> str:
-    return (
-        os.path.splitext(os.path.basename(sys.argv[0]))[0]
-        .strip()
-        .replace(" ", "-")
-        .lower()
-    )
+from .._consts import LogLevelEnum
+from .._utils import get_default_logs_dir, get_app_name
 
 
 class ExtraBaseModel(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-
-class LevelEnum(str, Enum):
-    TRACE = "TRACE"
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    SUCCESS = "SUCCESS"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+    class Config:
+        extra = "allow"
 
 
 class StdHandlerPM(ExtraBaseModel):
@@ -72,14 +43,15 @@ class LogHandlersPM(ExtraBaseModel):
         default="{app_name}.std.err.log", min_length=4, max_length=1023
     )
 
-    @model_validator(mode="after")
-    def _check_log_path(self) -> "LogHandlersPM":
-        if self.log_path == self.err_path:
+    @root_validator
+    def _check_log_path(cls, values):
+        _log_path, _err_path = values.get("log_path"), values.get("err_path")
+        if _log_path == _err_path:
             raise ValueError(
-                f"`log_path` and `err_path` attributes are same: '{self.log_path}', must be different!"
+                f"`log_path` and `err_path` attributes are same: '{_log_path}', must be different!"
             )
 
-        return self
+        return values
 
 
 class JsonHandlersPM(ExtraBaseModel):
@@ -92,19 +64,20 @@ class JsonHandlersPM(ExtraBaseModel):
         default="{app_name}.json.err.log", min_length=4, max_length=1023
     )
 
-    @model_validator(mode="after")
-    def _check_log_path(self) -> "JsonHandlersPM":
-        if self.log_path == self.err_path:
+    @root_validator
+    def _check_log_path(cls, values):
+        _log_path, _err_path = values.get("log_path"), values.get("err_path")
+        if _log_path == _err_path:
             raise ValueError(
-                f"`log_path` and `err_path` attributes are same: '{self.log_path}', must be different!"
+                f"`log_path` and `err_path` attributes are same: '{_log_path}', must be different!"
             )
 
-        return self
+        return values
 
 
 class FilePM(ExtraBaseModel):
     logs_dir: constr(strip_whitespace=True) = Field(
-        default_factory=_get_logs_dir, min_length=2, max_length=1023
+        default_factory=get_default_logs_dir, min_length=2, max_length=1023
     )
     rotate_size: int = Field(
         default=10_000_000, ge=1_000, lt=1_000_000_000  # 10MB = 10 * 1000 * 1000
@@ -117,10 +90,9 @@ class FilePM(ExtraBaseModel):
     log_handlers: LogHandlersPM = Field(default_factory=LogHandlersPM)
     json_handlers: JsonHandlersPM = Field(default_factory=JsonHandlersPM)
 
-    @field_validator("rotate_time", mode="before")
-    @classmethod
+    @validator("rotate_time", pre=True, always=True)
     def _check_rotate_time(cls, val):
-        if isinstance(val, str):
+        if val and isinstance(val, str):
             val = datetime.time.fromisoformat(val)
         return val
 
@@ -143,11 +115,11 @@ class ExtraPM(ExtraBaseModel):
 
 class LoggerConfigPM(ExtraBaseModel):
     app_name: constr(strip_whitespace=True) = Field(
-        default_factory=_get_app_name,
+        default_factory=get_app_name,
         min_length=1,
         max_length=127,
     )
-    level: LevelEnum = Field(default=LevelEnum.INFO)
+    level: LogLevelEnum = Field(default=LogLevelEnum.INFO)
     use_backtrace: bool = Field(default=True)
     use_diagnose: bool = Field(default=False)
     stream: StreamPM = Field(default_factory=StreamPM)
