@@ -2,7 +2,12 @@
 
 from typing import Union, Callable
 
-from pydantic import validate_call
+import pydantic
+
+if "2.0.0" <= pydantic.__version__:
+    from pydantic import validate_call
+else:
+    from pydantic import validate_arguments as validate_call
 
 from beans_logging import LoggerLoader
 

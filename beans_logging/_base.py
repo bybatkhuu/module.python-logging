@@ -11,7 +11,12 @@ from typing import Union, Dict, Any
 import yaml
 from loguru import logger
 from loguru._logger import Logger
-from pydantic import validate_call
+import pydantic
+
+if "2.0.0" <= pydantic.__version__:
+    from pydantic import validate_call
+else:
+    from pydantic import validate_arguments as validate_call
 
 ## Internal modules
 from ._utils import create_dir, deep_merge
@@ -168,7 +173,11 @@ class LoggerLoader:
         """
 
         if isinstance(config, dict):
-            _config_dict = self.config.model_dump()
+            if "2.0.0" <= pydantic.__version__:
+                _config_dict = self.config.model_dump()
+            else:
+                _config_dict = self.config.dict()
+
             _merged_dict = deep_merge(_config_dict, config)
             try:
                 self.config = LoggerConfigPM(**_merged_dict)
@@ -219,7 +228,11 @@ class LoggerLoader:
                             return
 
                         _new_config_dict = _new_config_dict["logger"]
-                        _config_dict = self.config.model_dump()
+                        if "2.0.0" <= pydantic.__version__:
+                            _config_dict = self.config.model_dump()
+                        else:
+                            _config_dict = self.config.dict()
+
                         _merged_dict = deep_merge(_config_dict, _new_config_dict)
                         self.config = LoggerConfigPM(**_merged_dict)
                 except Exception:
@@ -240,7 +253,11 @@ class LoggerLoader:
                             return
 
                         _new_config_dict = _new_config_dict["logger"]
-                        _config_dict = self.config.model_dump()
+                        if "2.0.0" <= pydantic.__version__:
+                            _config_dict = self.config.model_dump()
+                        else:
+                            _config_dict = self.config.dict()
+
                         _merged_dict = deep_merge(_config_dict, _new_config_dict)
                         self.config = LoggerConfigPM(**_merged_dict)
                 except Exception:
@@ -252,7 +269,9 @@ class LoggerLoader:
             #     try:
             #         import toml
 
-            #         with open(self.config_file_path, "r", encoding="utf-8") as _config_file:
+            #         with open(
+            #             self.config_file_path, "r", encoding="utf-8"
+            #         ) as _config_file:
             #             _new_config_dict = toml.load(_config_file) or {}
             #             if "logger" not in _new_config_dict:
             #                 logger.warning(
@@ -261,7 +280,11 @@ class LoggerLoader:
             #                 return
 
             #             _new_config_dict = _new_config_dict["logger"]
-            #             _config_dict = self.config.model_dump()
+            #             if "2.0.0" <= pydantic.__version__:
+            #                 _config_dict = self.config.model_dump()
+            #             else:
+            #                 _config_dict = self.config.dict()
+
             #             _merged_dict = deep_merge(_config_dict, _new_config_dict)
             #             self.config = LoggerConfigPM(**_merged_dict)
             #     except Exception:

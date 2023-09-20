@@ -290,7 +290,7 @@ if logger_loader.config.extra.http_json_enabled:
     )
 ```
 
-[**`app.py`**](https://github.com/bybatkhuu/module.python-logging/blob/main/examples/advanced/app.py):
+[**`main.py`**](https://github.com/bybatkhuu/module.python-logging/blob/main/examples/advanced/main.py):
 
 ```python
 from typing import Union
@@ -338,28 +338,28 @@ cd ./examples/advanced
 # Install python dependencies for examples:
 pip install -r ./requirements.txt
 
-uvicorn app:app --host=0.0.0.0 --port=8000
+uvicorn main:app --host=0.0.0.0 --port=8000
 ```
 
 **Output**:
 
 ```txt
-[2023-09-01 12:37:38.569 +09:00 | TRACE | beans_logging._base:499]: Intercepted modules: ['watchfiles.watcher', 'asyncio', 'watchfiles', 'concurrent', 'dotenv', 'concurrent.futures', 'fastapi', 'dotenv.main', 'uvicorn', 'watchfiles.main']; Muted modules: ['uvicorn.error', 'uvicorn.access'];
-[2023-09-01 12:37:38.579 +09:00 | INFO  | uvicorn.server:76]: Started server process [22599]
-[2023-09-01 12:37:38.579 +09:00 | INFO  | uvicorn.lifespan.on:46]: Waiting for application startup.
-[2023-09-01 12:37:38.579 +09:00 | INFO  | app:21]: Preparing to startup...
-[2023-09-01 12:37:38.580 +09:00 | OK    | app:22]: Finished preparation to startup.
-[2023-09-01 12:37:38.580 +09:00 | INFO  | app:23]: API version: 0.0.1-000000
-[2023-09-01 12:37:38.580 +09:00 | INFO  | uvicorn.lifespan.on:60]: Application startup complete.
-[2023-09-01 12:37:38.582 +09:00 | INFO  | uvicorn.server:218]: Uvicorn running on http://0.0.0.0:9000 (Press CTRL+C to quit)
-[2023-09-01 12:37:48.487 +09:00 | DEBUG | anyio._backends._asyncio:807]: [0b9f972939054a58ba10e7a39a12bd21] 127.0.0.1 - "GET / HTTP/1.1"
-[2023-09-01 12:37:48.488 +09:00 | OK    | anyio._backends._asyncio:807]: [0b9f972939054a58ba10e7a39a12bd21] 127.0.0.1 - "GET / HTTP/1.1" 200 17B 0.5ms
-^C[2023-09-01 12:37:51.845 +09:00 | INFO  | uvicorn.server:264]: Shutting down
-[2023-09-01 12:37:51.949 +09:00 | INFO  | uvicorn.lifespan.on:65]: Waiting for application shutdown.
-[2023-09-01 12:37:51.951 +09:00 | INFO  | app:26]: Praparing to shutdown...
-[2023-09-01 12:37:51.952 +09:00 | OK    | app:27]: Finished preparation to shutdown.
-[2023-09-01 12:37:51.952 +09:00 | INFO  | uvicorn.lifespan.on:76]: Application shutdown complete.
-[2023-09-01 12:37:51.953 +09:00 | INFO  | uvicorn.server:86]: Finished server process [22599]
+[2023-09-01 14:55:11.724 +09:00 | TRACE | beans_logging._base:576]: Intercepted modules: ['watchfiles.watcher', 'dotenv', 'asyncio', 'dotenv.main', 'watchfiles.main', 'concurrent.futures', 'uvicorn', 'fastapi', 'concurrent', 'watchfiles']; Muted modules: ['uvicorn.access', 'uvicorn.error'];
+[2023-09-01 14:55:11.740 +09:00 | INFO  | uvicorn.server:76]: Started server process [17146]
+[2023-09-01 14:55:11.740 +09:00 | INFO  | uvicorn.lifespan.on:46]: Waiting for application startup.
+[2023-09-01 14:55:11.741 +09:00 | INFO  | main:21]: Preparing to startup...
+[2023-09-01 14:55:11.741 +09:00 | OK    | main:22]: Finished preparation to startup.
+[2023-09-01 14:55:11.741 +09:00 | INFO  | main:23]: API version: 0.0.1-000000
+[2023-09-01 14:55:11.741 +09:00 | INFO  | uvicorn.lifespan.on:60]: Application startup complete.
+[2023-09-01 14:55:11.745 +09:00 | INFO  | uvicorn.server:218]: Uvicorn running on http://0.0.0.0:9000 (Press CTRL+C to quit)
+[2023-09-01 14:55:17.417 +09:00 | DEBUG | anyio._backends._asyncio:833]: [f635ebbc3f2348db9dcff681be1bd52a] 127.0.0.1 - "GET / HTTP/1.1"
+[2023-09-01 14:55:17.418 +09:00 | OK    | anyio._backends._asyncio:833]: [f635ebbc3f2348db9dcff681be1bd52a] 127.0.0.1 - "GET / HTTP/1.1" 200 17B 0.7ms
+^C[2023-09-01 14:55:18.729 +09:00 | INFO  | uvicorn.server:264]: Shutting down
+[2023-09-01 14:55:18.831 +09:00 | INFO  | uvicorn.lifespan.on:65]: Waiting for application shutdown.
+[2023-09-01 14:55:18.834 +09:00 | INFO  | main:26]: Praparing to shutdown...
+[2023-09-01 14:55:18.835 +09:00 | OK    | main:27]: Finished preparation to shutdown.
+[2023-09-01 14:55:18.837 +09:00 | INFO  | uvicorn.lifespan.on:76]: Application shutdown complete.
+[2023-09-01 14:55:18.837 +09:00 | INFO  | uvicorn.server:86]: Finished server process [17146]
 ```
 
 ---
