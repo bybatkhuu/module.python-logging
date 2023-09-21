@@ -3,15 +3,27 @@
 import datetime
 from typing import List
 
-from pydantic import BaseModel, constr, Field, validator, root_validator
 
-from .._consts import LogLevelEnum
-from .._utils import get_default_logs_dir, get_app_name
+import pydantic
+from pydantic import BaseModel, constr, Field
+
+if "2.0.0" <= pydantic.__version__:
+    from pydantic import field_validator, model_validator, ConfigDict
+else:
+    from pydantic import validator, root_validator
+
+
+from ._consts import LogLevelEnum
+from ._utils import get_default_logs_dir, get_app_name
 
 
 class ExtraBaseModel(BaseModel):
-    class Config:
-        extra = "allow"
+    if "2.0.0" <= pydantic.__version__:
+        model_config = ConfigDict(extra="allow")
+    else:
+
+        class Config:
+            extra = "allow"
 
 
 class StdHandlerPM(ExtraBaseModel):
@@ -43,15 +55,26 @@ class LogHandlersPM(ExtraBaseModel):
         default="{app_name}.std.err.log", min_length=4, max_length=1023
     )
 
-    @root_validator
-    def _check_log_path(cls, values):
-        _log_path, _err_path = values.get("log_path"), values.get("err_path")
-        if _log_path == _err_path:
-            raise ValueError(
-                f"`log_path` and `err_path` attributes are same: '{_log_path}', must be different!"
-            )
+    if "2.0.0" <= pydantic.__version__:
 
-        return values
+        @model_validator(mode="after")
+        def _check_log_path(self) -> "LogHandlersPM":
+            if self.log_path == self.err_path:
+                raise ValueError(
+                    f"`log_path` and `err_path` attributes are same: '{self.log_path}', must be different!"
+                )
+            return self
+
+    else:
+
+        @root_validator
+        def _check_log_path(cls, values):
+            _log_path, _err_path = values.get("log_path"), values.get("err_path")
+            if _log_path == _err_path:
+                raise ValueError(
+                    f"`log_path` and `err_path` attributes are same: '{_log_path}', must be different!"
+                )
+            return values
 
 
 class JsonHandlersPM(ExtraBaseModel):
@@ -64,15 +87,26 @@ class JsonHandlersPM(ExtraBaseModel):
         default="{app_name}.json.err.log", min_length=4, max_length=1023
     )
 
-    @root_validator
-    def _check_log_path(cls, values):
-        _log_path, _err_path = values.get("log_path"), values.get("err_path")
-        if _log_path == _err_path:
-            raise ValueError(
-                f"`log_path` and `err_path` attributes are same: '{_log_path}', must be different!"
-            )
+    if "2.0.0" <= pydantic.__version__:
 
-        return values
+        @model_validator(mode="after")
+        def _check_log_path(self) -> "JsonHandlersPM":
+            if self.log_path == self.err_path:
+                raise ValueError(
+                    f"`log_path` and `err_path` attributes are same: '{self.log_path}', must be different!"
+                )
+            return self
+
+    else:
+
+        @root_validator
+        def _check_log_path(cls, values):
+            _log_path, _err_path = values.get("log_path"), values.get("err_path")
+            if _log_path == _err_path:
+                raise ValueError(
+                    f"`log_path` and `err_path` attributes are same: '{_log_path}', must be different!"
+                )
+            return values
 
 
 class FilePM(ExtraBaseModel):
@@ -90,11 +124,22 @@ class FilePM(ExtraBaseModel):
     log_handlers: LogHandlersPM = Field(default_factory=LogHandlersPM)
     json_handlers: JsonHandlersPM = Field(default_factory=JsonHandlersPM)
 
-    @validator("rotate_time", pre=True, always=True)
-    def _check_rotate_time(cls, val):
-        if val and isinstance(val, str):
-            val = datetime.time.fromisoformat(val)
-        return val
+    if "2.0.0" <= pydantic.__version__:
+
+        @field_validator("rotate_time", mode="before")
+        @classmethod
+        def _check_rotate_time(cls, val):
+            if isinstance(val, str):
+                val = datetime.time.fromisoformat(val)
+            return val
+
+    else:
+
+        @validator("rotate_time", pre=True, always=True)
+        def _check_rotate_time(cls, val):
+            if val and isinstance(val, str):
+                val = datetime.time.fromisoformat(val)
+            return val
 
 
 class AutoLoadPM(ExtraBaseModel):

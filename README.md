@@ -24,6 +24,7 @@ It is a `Loguru` based custom logging package for python projects.
 - Add custom **handlers**
 - **FastAPI** HTTP access logging **middleware**
 - **Base** logging module
+- Support **Pydantic-v1** and **Pydantic-v2**
 
 ---
 
@@ -181,16 +182,16 @@ python ./main.py
 **Output**:
 
 ```txt
-[2023-09-01 09:00:00.384 +09:00 | TRACE | beans_logging._base:478]: Intercepted modules: ['concurrent', 'concurrent.futures', 'asyncio']; Muted modules: [];
-[2023-09-01 09:00:00.384 +09:00 | TRACE | __main__:7]: Tracing...
-[2023-09-01 09:00:00.385 +09:00 | DEBUG | __main__:8]: Debugging...
-[2023-09-01 09:00:00.385 +09:00 | INFO  | __main__:9]: Logging info.
-[2023-09-01 09:00:00.385 +09:00 | OK    | __main__:10]: Success.
-[2023-09-01 09:00:00.385 +09:00 | WARN  | __main__:11]: Warning something.
-[2023-09-01 09:00:00.385 +09:00 | ERROR | __main__:12]: Error occured.
-[2023-09-01 09:00:00.386 +09:00 | CRIT  | __main__:13]: CRITICAL ERROR.
-[2023-09-01 09:00:00.386 +09:00 | ERROR | __main__:25]: division by zero
-[2023-09-01 09:00:00.386 +09:00 | ERROR | __main__:32]: Show me, what value is wrong:
+[2023-09-01 00:00:00.000 +09:00 | TRACE | beans_logging._base:478]: Intercepted modules: ['concurrent', 'concurrent.futures', 'asyncio']; Muted modules: [];
+[2023-09-01 00:00:00.000 +09:00 | TRACE | __main__:7]: Tracing...
+[2023-09-01 00:00:00.000 +09:00 | DEBUG | __main__:8]: Debugging...
+[2023-09-01 00:00:00.000 +09:00 | INFO  | __main__:9]: Logging info.
+[2023-09-01 00:00:00.000 +09:00 | OK    | __main__:10]: Success.
+[2023-09-01 00:00:00.000 +09:00 | WARN  | __main__:11]: Warning something.
+[2023-09-01 00:00:00.000 +09:00 | ERROR | __main__:12]: Error occured.
+[2023-09-01 00:00:00.000 +09:00 | CRIT  | __main__:13]: CRITICAL ERROR.
+[2023-09-01 00:00:00.000 +09:00 | ERROR | __main__:25]: division by zero
+[2023-09-01 00:00:00.000 +09:00 | ERROR | __main__:32]: Show me, what value is wrong:
 Traceback (most recent call last):
 
 > File "/home/user/workspaces/projects/beans_logging/examples/simple/./main.py", line 30, in <module>
@@ -344,22 +345,22 @@ uvicorn main:app --host=0.0.0.0 --port=8000
 **Output**:
 
 ```txt
-[2023-09-01 14:55:11.724 +09:00 | TRACE | beans_logging._base:576]: Intercepted modules: ['watchfiles.watcher', 'dotenv', 'asyncio', 'dotenv.main', 'watchfiles.main', 'concurrent.futures', 'uvicorn', 'fastapi', 'concurrent', 'watchfiles']; Muted modules: ['uvicorn.access', 'uvicorn.error'];
-[2023-09-01 14:55:11.740 +09:00 | INFO  | uvicorn.server:76]: Started server process [17146]
-[2023-09-01 14:55:11.740 +09:00 | INFO  | uvicorn.lifespan.on:46]: Waiting for application startup.
-[2023-09-01 14:55:11.741 +09:00 | INFO  | main:21]: Preparing to startup...
-[2023-09-01 14:55:11.741 +09:00 | OK    | main:22]: Finished preparation to startup.
-[2023-09-01 14:55:11.741 +09:00 | INFO  | main:23]: API version: 0.0.1-000000
-[2023-09-01 14:55:11.741 +09:00 | INFO  | uvicorn.lifespan.on:60]: Application startup complete.
-[2023-09-01 14:55:11.745 +09:00 | INFO  | uvicorn.server:218]: Uvicorn running on http://0.0.0.0:9000 (Press CTRL+C to quit)
-[2023-09-01 14:55:17.417 +09:00 | DEBUG | anyio._backends._asyncio:833]: [f635ebbc3f2348db9dcff681be1bd52a] 127.0.0.1 - "GET / HTTP/1.1"
-[2023-09-01 14:55:17.418 +09:00 | OK    | anyio._backends._asyncio:833]: [f635ebbc3f2348db9dcff681be1bd52a] 127.0.0.1 - "GET / HTTP/1.1" 200 17B 0.7ms
-^C[2023-09-01 14:55:18.729 +09:00 | INFO  | uvicorn.server:264]: Shutting down
-[2023-09-01 14:55:18.831 +09:00 | INFO  | uvicorn.lifespan.on:65]: Waiting for application shutdown.
-[2023-09-01 14:55:18.834 +09:00 | INFO  | main:26]: Praparing to shutdown...
-[2023-09-01 14:55:18.835 +09:00 | OK    | main:27]: Finished preparation to shutdown.
-[2023-09-01 14:55:18.837 +09:00 | INFO  | uvicorn.lifespan.on:76]: Application shutdown complete.
-[2023-09-01 14:55:18.837 +09:00 | INFO  | uvicorn.server:86]: Finished server process [17146]
+[2023-09-01 00:00:00.000 +09:00 | TRACE | beans_logging._base:576]: Intercepted modules: ['watchfiles.watcher', 'dotenv', 'asyncio', 'dotenv.main', 'watchfiles.main', 'concurrent.futures', 'uvicorn', 'fastapi', 'concurrent', 'watchfiles']; Muted modules: ['uvicorn.access', 'uvicorn.error'];
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.server:76]: Started server process [17146]
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.lifespan.on:46]: Waiting for application startup.
+[2023-09-01 00:00:00.000 +09:00 | INFO  | main:21]: Preparing to startup...
+[2023-09-01 00:00:00.000 +09:00 | OK    | main:22]: Finished preparation to startup.
+[2023-09-01 00:00:00.000 +09:00 | INFO  | main:23]: API version: 0.0.1-000000
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.lifespan.on:60]: Application startup complete.
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.server:218]: Uvicorn running on http://0.0.0.0:9000 (Press CTRL+C to quit)
+[2023-09-01 00:00:00.000 +09:00 | DEBUG | anyio._backends._asyncio:833]: [f635ebbc3f2348db9dcff681be1bd52a] 127.0.0.1 - "GET / HTTP/1.1"
+[2023-09-01 00:00:00.000 +09:00 | OK    | anyio._backends._asyncio:833]: [f635ebbc3f2348db9dcff681be1bd52a] 127.0.0.1 - "GET / HTTP/1.1" 200 17B 0.7ms
+^C[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.server:264]: Shutting down
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.lifespan.on:65]: Waiting for application shutdown.
+[2023-09-01 00:00:00.000 +09:00 | INFO  | main:26]: Praparing to shutdown...
+[2023-09-01 00:00:00.000 +09:00 | OK    | main:27]: Finished preparation to shutdown.
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.lifespan.on:76]: Application shutdown complete.
+[2023-09-01 00:00:00.000 +09:00 | INFO  | uvicorn.server:86]: Finished server process [17146]
 ```
 
 ---
