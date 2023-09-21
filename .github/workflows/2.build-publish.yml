@@ -52,11 +52,11 @@ jobs:
       - name: Build and publish package
       # run: |
       #   echo -e "[testpypi]\nusername = __token__\npassword = ${{ secrets.TEST_PYPI_API_TOKEN }}" > ~/.pypirc
-      #   ./scripts/build.sh -c -t -u
+      #   ./scripts/build.sh -c -u
       #   rm -rfv ~/.pypirc
         run: |
           echo -e "[pypi]\nusername = __token__\npassword = ${{ secrets.PYPI_API_TOKEN }}" > ~/.pypirc
-          ./scripts/build.sh -c -t -u -p
+          ./scripts/build.sh -c -u -p
           rm -rfv ~/.pypirc
       - name: Create release
         env:
