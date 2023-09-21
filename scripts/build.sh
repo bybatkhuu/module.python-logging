@@ -27,7 +27,7 @@ fi
 ## --- Variables --- ##
 # Flags:
 _IS_CLEAN=true
-_IS_TEST=true
+_IS_TEST=false
 _IS_UPLOAD=false
 _IS_STAGING=true
 ## --- Variables --- ##
@@ -44,7 +44,7 @@ main()
 					_IS_CLEAN=false
 					shift;;
 				-t | --disable-test)
-					_IS_TEST=false
+					_IS_TEST=true
 					shift;;
 				-u | --upload)
 					_IS_UPLOAD=true
@@ -54,7 +54,7 @@ main()
 					shift;;
 				*)
 					echoError "Failed to parsing input -> ${_input}"
-					echoInfo "USAGE: ${0} -c, --disable-clean | -t, --disable-test | -u, --upload | -p, --production"
+					echoInfo "USAGE: ${0} -c, --disable-clean | -t, --test | -u, --upload | -p, --production"
 					exit 1;;
 			esac
 		done
