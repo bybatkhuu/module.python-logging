@@ -552,11 +552,13 @@ class LoggerLoader:
                 ):
                     _logger = logging.getLogger(_module_name)
                     _logger.handlers = [_intercept_handler]
+                    _logger.propagate = False
                     _intercepted_modules.add(_module_name)
 
         for _include_module_name in self.config.intercept.include_modules:
             _logger = logging.getLogger(_include_module_name)
             _logger.handlers = [_intercept_handler]
+            logger.propagate = False
 
             if _include_module_name not in _intercepted_modules:
                 _intercepted_modules.add(_include_module_name)
@@ -564,8 +566,8 @@ class LoggerLoader:
         for _mute_module_name in self.config.intercept.mute_modules:
             _logger = logging.getLogger(_mute_module_name)
             _logger.handlers = []
-            # _logger.propagate = False
-            # _logger.disabled = True
+            _logger.propagate = False
+            _logger.disabled = True
 
             if _mute_module_name in _intercepted_modules:
                 _intercepted_modules.remove(_mute_module_name)

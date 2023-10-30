@@ -43,18 +43,20 @@ main()
 
 	find . -type f -name ".DS_Store" -print -delete || exit 2
 	find . -type f -name ".Thumbs.db" -print -delete || exit 2
+	find . -type f -name ".coverage*" -print -delete || exit 2
 	find . -type d -name "__pycache__" -exec rm -rfv {} + || exit 2
-	find ./examples -type d -name "logs" -exec rm -rfv {} + || exit 2
+	find . -type d -name ".benchmarks" -exec rm -rfv {} + || exit 2
+	find . -type d -name ".pytest_cache" -exec rm -rfv {} + || exit 2
 
-	rm -rfv .benchmarks || exit 2
-	rm -rfv .pytest_cache || exit 2
+	find . -type d -name ".git" -prune -o -type d -name "logs" -exec rm -rfv {} + || exit 2
+
 	rm -rfv build || exit 2
 	rm -rfv dist || exit 2
-	rm -rfv .coverage || exit 2
 
 	if [ "${_IS_ALL}" == true ]; then
 		rm -rfv ./*.egg-info || exit 2
 	fi
+
 	echoOk "Done."
 }
 

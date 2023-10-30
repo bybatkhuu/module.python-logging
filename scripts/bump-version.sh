@@ -26,7 +26,6 @@ VERSION_FILE="${VERSION_FILE:-beans_logging/__version__.py}"
 
 
 _BUMP_TYPE=""
-# _BUMP_TYPE="patch"
 
 # Flags:
 _IS_PUSH_TAG=false
