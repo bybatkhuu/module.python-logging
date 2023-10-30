@@ -43,7 +43,7 @@ main()
 				-c | --disable-clean)
 					_IS_CLEAN=false
 					shift;;
-				-t | --disable-test)
+				-t | --test)
 					_IS_TEST=true
 					shift;;
 				-u | --upload)
