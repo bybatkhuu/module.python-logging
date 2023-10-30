@@ -148,6 +148,12 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
 
         _http_info["method"] = request.method
         _http_info["url_path"] = request.url.path
+        if "{" in _http_info["url_path"]:
+            _http_info["url_path"] = _http_info["url_path"].replace("{", "{{")
+
+        if "}" in _http_info["url_path"]:
+            _http_info["url_path"] = _http_info["url_path"].replace("}", "}}")
+
         if request.url.query:
             _http_info["url_path"] = f"{request.url.path}?{request.url.query}"
 
@@ -169,6 +175,7 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         ## Debug log:
         if self.use_debug_log:
             _debug_msg = self.debug_format.format(**_http_info)
+
             # _logger.debug(_debug_msg)
             await run_in_threadpool(
                 _logger.debug,
@@ -179,11 +186,11 @@ class HttpAccessLogMiddleware(BaseHTTPMiddleware):
         ## Set http info to request state:
         request.state.http_info = _http_info
 
-        ## Process request:
         _start_time = time.time()
+        ## Process request:
         response = await call_next(request)
+        ## Response processed.
         _http_info["response_time"] = round((time.time() - _start_time) * 1000, 1)
-        ## Response processed
 
         if "X-Process-Time" in response.headers:
             try:
