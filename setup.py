@@ -40,6 +40,7 @@ setup(
         "pydantic>=1.10.0,!=2.0.0,!=2.0.1,!=2.1.0,<3.0.0",
         "loguru>=0.7.2,<1.0.0",
     ],
+    extras_require={"fastapi": ["beans-logging-fastapi>=1.0.0,<2.0.0"]},
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
