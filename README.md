@@ -22,7 +22,6 @@ It is a `Loguru` based custom logging package for python projects.
 - Custom logging **formats**
 - **Multiprocess** compatibility (Linux, macOS - 'fork')
 - Add custom **handlers**
-- **FastAPI** HTTP access logging **middleware**
 - **Base** logging module
 - Support **Pydantic-v1** and **Pydantic-v2**
 
