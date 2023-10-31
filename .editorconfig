@@ -1,23 +1,26 @@
 root = true
 
 [*]
+indent_style = tab
+indent_size = 4
 charset = utf-8
-trim_trailing_whitespace = true
 end_of_line = lf
+trim_trailing_whitespace = true
 insert_final_newline = true
 
 [*.py]
 indent_style = space
-indent_size = 4
 
-[*.{yml,yaml}]
+[*.{yaml,yml}]
 indent_style = space
 indent_size = 2
 
-[*.{js,json,sh}]
-indent_style = tab
+[*.bat]
+end_of_line = crlf
 
 [*.md]
 indent_style = space
-indent_size = 4
 trim_trailing_whitespace = false
+
+[LICENSE]
+insert_final_newline = false
