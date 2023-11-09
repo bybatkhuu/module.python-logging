@@ -215,7 +215,7 @@ ZeroDivisionError: division by zero
 Checkout `beans_logging_fastapi` package: <https://github.com/bybatkhuu/module.fastapi-logging>
 
 - FastAPI HTTP access logging middleware
-- Install with pip: `pip install -U beans-logging[fastapi]` or `pip install -U beans-logging-fastapi`
+- Install with pip: `pip install -U beans-logging-fastapi`
 
 ---
 
